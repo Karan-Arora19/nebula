@@ -15,7 +15,7 @@ spring:
   # =====================================================================
   datasource:
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:nebula_db}
-    username: ${POSTGRES_USER:nebula_user}
+    username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
@@ -62,6 +62,10 @@ logging:
 
     # Keep important app-level logs at INFO
     pse.nebula: INFO
+
+app:
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
 
 # Eureka client configuration
 # Services will register with Eureka when available
