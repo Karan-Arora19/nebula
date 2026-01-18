@@ -268,7 +268,7 @@ export default function WorldDrivePage() {
             {/* Current position */}
             <div className="bg-gray-700/50 rounded-xl p-3 border border-gray-600/50">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                <div className="w-11 h-11 bg-gray-500/20 rounded-lg flex items-center justify-center">
                   <span className="text-lg">📍</span>
                 </div>
                 <div className="min-w-0">

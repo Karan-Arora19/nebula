@@ -97,9 +97,6 @@ export default function Home() {
         <div className="relative z-10 text-center px-4">
           <h1 className="text-7xl font-bold mb-6 tracking-tight">NEBULA</h1>
           <p className="text-2xl mb-8 text-gray-300">Engineering Excellence, Defining Performance</p>
-          <Link href="/cars" className="inline-block bg-red-600 hover:bg-red-700 px-8 py-4 rounded-lg text-lg font-semibold transition transform hover:scale-105">
-            Explore Our Models
-          </Link>
         </div>
       </div>
       
@@ -210,15 +207,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* View All Button */}
-          <div className="text-center mt-12">
-            <Link
-              href="/cars"
-              className="inline-block bg-transparent border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-8 py-4 rounded-lg text-lg font-semibold transition"
-            >
-              View All Models
-            </Link>
-          </div>
+
         </div>
       </div>
 
@@ -264,21 +253,14 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="text-center">
-            <Link
-              href="/merchandise"
-              className="inline-block bg-red-600 hover:bg-red-700 px-10 py-4 rounded-lg text-lg font-semibold transition transform hover:scale-105"
-            >
-              Shop All Merchandise
-            </Link>
-          </div>
+
         </div>
       </div>
 
       {/* Footer */}
       <footer className="bg-black border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
+          <div className="grid md:grid-cols-2 lg:grid-cols-6 gap-8 mb-12">
             {/* Brand Section */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-2 mb-4">
@@ -316,6 +298,15 @@ export default function Home() {
                 <li><Link href="/world-drive" className="text-gray-400 hover:text-red-500 transition">World Drive</Link></li>
                 <li><Link href="/merchandise" className="text-gray-400 hover:text-red-500 transition">Merchandise</Link></li>
                 <li><Link href="/my-car" className="text-gray-400 hover:text-red-500 transition">My Nebula Car</Link></li>
+              </ul>
+            </div>
+
+            {/* Dashboards */}
+            <div>
+              <h3 className="text-lg font-bold mb-4">Dashboards</h3>
+              <ul className="space-y-2">
+                <li><Link href="/user-dashboard" className="text-gray-400 hover:text-red-500 transition">User Dashboard</Link></li>
+                <li><Link href="/admin-dashboard" className="text-gray-400 hover:text-red-500 transition">Admin Dashboard</Link></li>
               </ul>
             </div>
 

@@ -356,7 +356,7 @@ export default function MapView({
       {/* Map frame with 3D styling */}
       <div className="flex-1 relative">
         {/* Outer glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-rose-500/10 to-pink-500/20 rounded-3xl blur-xl" />
         
         {/* Main frame container */}
         <div className="relative h-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-3xl p-1.5 shadow-2xl">
@@ -369,7 +369,7 @@ export default function MapView({
               <button
                 className={`absolute bottom-4 right-4 z-[1000] px-4 py-2 rounded-lg font-semibold text-sm transition-all shadow-md ${
                   followCar 
-                    ? 'bg-blue-600 text-white' 
+                    ? 'bg-red-600 text-white' 
                     : 'bg-white text-gray-700 border border-gray-200'
                 }`}
                 onClick={() => setFollowCar(!followCar)}
