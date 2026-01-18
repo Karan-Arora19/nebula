@@ -27,6 +27,9 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     @Autowired
     private PublicRoutesConfig publicRoutesConfig;
 
+    @Autowired
+    private TokenBlacklistClient tokenBlacklistClient;
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -50,31 +53,46 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
         String token = authHeader.substring(7); // Remove "Bearer " prefix
 
-        try {
-            // Validate token
-            Claims claims = jwtValidator.validateToken(token);
+        log.debug("Extracted token for path: {}", path);
 
-            // Extract user information
-            String userId = jwtValidator.getUserId(claims);
-            String email = jwtValidator.getEmail(claims);
-            String roles = jwtValidator.getRoles(claims);
+        // Check if token is blacklisted
+        return tokenBlacklistClient.isTokenBlacklisted(token)
+                .flatMap(isBlacklisted -> {
+                    log.debug("Blacklist check result for path {}: {}", path, isBlacklisted);
 
-            log.info("Authenticated user: {} ({})", userId, email);
+                    if (Boolean.TRUE.equals(isBlacklisted)) {
+                        log.warn("Blocked blacklisted token for path: {}", path);
+                        return onError(exchange, "Token has been revoked", HttpStatus.UNAUTHORIZED);
+                    }
 
-            // Add user info to request headers for downstream services
-            ServerHttpRequest modifiedRequest = request.mutate()
-                    .header("X-User-Id", userId != null ? userId : "")
-                    .header("X-User-Email", email != null ? email : "")
-                    .header("X-User-Roles", roles != null ? roles : "")
-                    .build();
+                    log.debug("Token not blacklisted, proceeding with JWT validation");
 
-            // Continue with modified request
-            return chain.filter(exchange.mutate().request(modifiedRequest).build());
+                    try {
+                        // Validate token
+                        Claims claims = jwtValidator.validateToken(token);
 
-        } catch (Exception e) {
-            log.error("Token validation failed: {}", e.getMessage());
-            return onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED);
-        }
+                        // Extract user information
+                        String userId = jwtValidator.getUserId(claims);
+                        String email = jwtValidator.getEmail(claims);
+                        String roles = jwtValidator.getRoles(claims);
+
+                        log.info("Authenticated user: {} ({}) for path: {}", userId, email, path);
+
+                        // Add user info to request headers for downstream services
+                        ServerHttpRequest modifiedRequest = request.mutate()
+                                .header("X-User-Id", userId != null ? userId : "")
+                                .header("X-User-Email", email != null ? email : "")
+                                .header("X-User-Roles", roles != null ? roles : "")
+                                .build();
+
+                        // Continue with modified request
+                        return chain.filter(exchange.mutate().request(modifiedRequest).build());
+
+                    } catch (Exception e) {
+                        log.error("Token validation failed: {}", e.getMessage());
+                        return onError(exchange, "Invalid or expired token", HttpStatus.UNAUTHORIZED);
+                    }
+                });
     }
 
     private Mono<Void> onError(ServerWebExchange exchange, String message, HttpStatus status) {
@@ -92,5 +110,10 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     @Override
     public int getOrder() {
         return -100; // Run before other filters
+    }
+
+    // Package-visible setter used by tests to inject mock TokenBlacklistClient reliably
+    void setTokenBlacklistClient(TokenBlacklistClient tokenBlacklistClient) {
+        this.tokenBlacklistClient = tokenBlacklistClient;
     }
 }

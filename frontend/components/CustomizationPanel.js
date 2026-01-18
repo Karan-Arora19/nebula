@@ -28,15 +28,15 @@ export default function CustomizationPanel({
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-gray-900 to-black text-white">
       {/* Category Tabs - Enhanced */}
-      <div className="bg-gray-900/80 backdrop-blur-sm border-b-2 border-gray-700/50 shadow-lg">
+      <div className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700/50 shadow-md">
         <div className="flex overflow-x-auto scrollbar-hide">
           {categories.map((category) => (
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`shrink-0 px-6 py-4 text-sm font-medium transition-all duration-200 border-b-2 relative ${
+              className={`shrink-0 px-4 py-3 text-xs font-medium transition-all duration-200 border-b-2 relative ${
                 activeCategory === category.id
-                  ? "bg-gray-800/50 border-red-500 text-white shadow-lg shadow-red-500/20"
+                  ? "bg-gray-800/50 border-red-500 text-white shadow-md shadow-red-500/20"
                   : "border-transparent text-gray-400 hover:text-white hover:bg-gray-800/30"
               }`}
             >
@@ -51,19 +51,19 @@ export default function CustomizationPanel({
       </div>
 
       {/* Parts List */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-3 bg-gradient-to-b from-transparent via-gray-900/20 to-transparent">
+      <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gradient-to-b from-transparent via-gray-900/20 to-transparent">
         {currentCategory && (
           <>
-            <div className="mb-6 pb-4 border-b border-gray-700/30">
-              <h3 className="text-2xl font-bold text-white mb-1">
+            <div className="mb-4 pb-3 border-b border-gray-700/30">
+              <h3 className="text-lg font-bold text-white mb-0.5">
                 {currentCategory.name}
               </h3>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-xs">
                 Select a {currentCategory.name.toLowerCase()} option
               </p>
             </div>
 
-            <div className="grid gap-3">
+            <div className="grid gap-2">
               {currentCategory.parts.map((part) => {
                 const isSelected =
                   configuration[currentCategory.id] === part.visualKey
@@ -74,36 +74,36 @@ export default function CustomizationPanel({
                     onClick={() =>
                       onPartSelect(currentCategory.id, part.visualKey)
                     }
-                    className={`group relative p-4 rounded-xl border-2 transition-all duration-200 text-left ${
+                    className={`group relative p-3 rounded-lg border transition-all duration-200 text-left ${
                       isSelected
-                        ? "bg-red-500/20 border-red-500 shadow-xl shadow-red-500/30 backdrop-blur-sm"
+                        ? "bg-red-500/20 border-red-500 shadow-lg shadow-red-500/30 backdrop-blur-sm"
                         : "bg-gray-800/30 border-gray-700/50 hover:border-red-500/50 hover:bg-gray-800/50"
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-1.5 mb-0.5">
                           <h4
-                            className={`font-semibold ${
+                            className={`text-sm font-semibold ${
                               isSelected ? "text-red-300" : "text-white"
                             }`}
                           >
                             {part.name}
                           </h4>
                           {isSelected && (
-                            <span className="px-2 py-0.5 text-xs font-medium bg-red-500 text-white rounded-full">
+                            <span className="px-1.5 py-0.5 text-[10px] font-medium bg-red-500 text-white rounded-full">
                               Selected
                             </span>
                           )}
                         </div>
                         {part.description && (
-                          <p className="text-sm text-gray-400 mb-2">
+                          <p className="text-xs text-gray-400 mb-1.5">
                             {part.description}
                           </p>
                         )}
                         <div className="flex items-center justify-between">
                           <span
-                            className={`text-lg font-bold ${
+                            className={`text-sm font-bold ${
                               part.cost === 0
                                 ? "text-green-400"
                                 : isSelected
@@ -120,7 +120,7 @@ export default function CustomizationPanel({
 
                       {/* Selection indicator */}
                       <div
-                        className={`ml-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                        className={`ml-3 w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
                           isSelected
                             ? "bg-red-500 border-red-500"
                             : "border-gray-600 group-hover:border-gray-500"
@@ -128,7 +128,7 @@ export default function CustomizationPanel({
                       >
                         {isSelected && (
                           <svg
-                            className="w-4 h-4 text-white"
+                            className="w-3 h-3 text-white"
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -152,12 +152,12 @@ export default function CustomizationPanel({
       </div>
 
       {/* Category Info Footer - Enhanced */}
-      <div className="p-4 bg-gray-900/80 backdrop-blur-sm border-t-2 border-gray-700/50 shadow-lg">
-        <div className="flex items-center justify-between text-sm">
+      <div className="p-3 bg-gray-900/80 backdrop-blur-sm border-t border-gray-700/50 shadow-md">
+        <div className="flex items-center justify-between text-xs">
           <span className="text-gray-400 font-medium">
             {currentCategory?.parts.length} options available
           </span>
-          <span className="text-red-400 text-xs font-semibold uppercase tracking-wider">
+          <span className="text-red-400 text-[10px] font-semibold uppercase tracking-wider">
             Tap to customize
           </span>
         </div>

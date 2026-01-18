@@ -52,10 +52,8 @@ public class AutoJourneySchedulerService {
         this.defaultSpeedMps = defaultSpeedMps;
         this.delayBetweenJourneysMs = delayBetweenJourneysMs;
 
-        log.info("AutoJourneySchedulerService initialized:");
-        log.info("  - Update interval: {}ms ({}s)", updateIntervalMs, updateIntervalSeconds);
-        log.info("  - Default speed: {} m/s ({} km/h)", defaultSpeedMps, defaultSpeedMps * 3.6);
-        log.info("  - Delay between journeys: {}ms", delayBetweenJourneysMs);
+        log.info("AutoJourneySchedulerService initialized - Update: {}ms, Speed: {} m/s ({} km/h), Delay: {}ms",
+                updateIntervalMs, defaultSpeedMps, String.format("%.1f", defaultSpeedMps * 3.6), delayBetweenJourneysMs);
     }
 
     /**
@@ -84,7 +82,7 @@ public class AutoJourneySchedulerService {
         if (lastJourneyCompletedTime > 0) {
             long timeSinceCompletion = System.currentTimeMillis() - lastJourneyCompletedTime;
             if (timeSinceCompletion < delayBetweenJourneysMs) {
-                log.debug("Waiting before starting new journey. Time remaining: {}ms",
+                log.trace("Waiting before starting new journey. Time remaining: {}ms",
                         delayBetweenJourneysMs - timeSinceCompletion);
                 return;
             }
@@ -101,7 +99,7 @@ public class AutoJourneySchedulerService {
         try {
             // Check if journey still exists
             if (!journeyUseCase.journeyExists(journeyId)) {
-                log.warn("Active journey no longer exists: {}", journeyId);
+                log.warn("[Journey: {}] Active journey no longer exists, clearing", journeyId);
                 activeJourneyId.set(null);
                 return;
             }
@@ -110,7 +108,6 @@ public class AutoJourneySchedulerService {
 
             // Check if journey is completed
             if (state.getStatus() == JourneyStatus.COMPLETED) {
-                log.info("=== JOURNEY COMPLETED: {} ===", journeyId);
                 onJourneyCompleted(journeyId);
                 return;
             }
@@ -122,12 +119,11 @@ public class AutoJourneySchedulerService {
                 // Check if completed after advancement
                 JourneyState updatedState = journeyUseCase.getJourneyState(journeyId);
                 if (updatedState.getStatus() == JourneyStatus.COMPLETED) {
-                    log.info("=== JOURNEY COMPLETED after advance: {} ===", journeyId);
                     onJourneyCompleted(journeyId);
                 }
             }
         } catch (Exception e) {
-            log.error("Error processing journey: {}", journeyId, e);
+            log.error("[Journey: {}] Error processing journey", journeyId, e);
             // Clear the active journey to allow recovery
             activeJourneyId.set(null);
         }
@@ -144,19 +140,11 @@ public class AutoJourneySchedulerService {
             // Generate a unique journey ID
             String journeyId = "auto-journey-" + UUID.randomUUID().toString().substring(0, 8);
 
-            log.info("=== STARTING NEW AUTO JOURNEY ===");
-            log.info("Journey ID: {}", journeyId);
-            log.info("Route: {} ({})", route.name(), route.id());
-            log.info("Speed: {} m/s ({} km/h)", defaultSpeedMps, defaultSpeedMps * 3.6);
-
-            // Start the journey
+            // Start the journey (logging is handled in JourneyService)
             JourneyState journeyState = journeyUseCase.startNewJourney(journeyId, defaultSpeedMps);
 
             // Register as active journey
             activeJourneyId.set(journeyId);
-
-            log.info("Journey started successfully. Total waypoints: {}",
-                    journeyState.getRoute().getTotalWaypoints());
 
         } catch (Exception e) {
             log.error("Failed to start new auto journey", e);
@@ -167,11 +155,11 @@ public class AutoJourneySchedulerService {
      * Handle journey completion - cleanup and prepare for next journey.
      */
     private void onJourneyCompleted(String journeyId) {
-        // Clean up the completed journey
+        // Clean up the completed journey (completion logging is handled in JourneyService)
         try {
             journeyUseCase.stopJourney(journeyId);
         } catch (Exception e) {
-            log.debug("Journey already cleaned up: {}", journeyId);
+            log.debug("[Journey: {}] Already cleaned up", journeyId);
         }
 
         // Clear active journey
@@ -180,8 +168,8 @@ public class AutoJourneySchedulerService {
         // Record completion time for delay
         lastJourneyCompletedTime = System.currentTimeMillis();
 
-        log.info("Journey {} cleaned up. Next journey will start in {}ms",
-                journeyId, delayBetweenJourneysMs);
+        long delaySeconds = delayBetweenJourneysMs / 1000;
+        log.info("Next journey will start in {}s", delaySeconds);
     }
 
     /**

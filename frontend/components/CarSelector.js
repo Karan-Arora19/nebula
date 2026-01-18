@@ -29,21 +29,21 @@ export default function CarSelector({ currentCarId, onCarChange, availableCars }
   }
 
   return (
-    <div className="flex items-center gap-4 bg-black/80 backdrop-blur-md px-6 py-3 rounded-xl border-2 border-red-500/50 shadow-2xl shadow-red-500/20">
+    <div className="flex items-center gap-3 bg-black/80 backdrop-blur-md px-4 py-2 rounded-lg border border-red-500/50 shadow-lg shadow-red-500/20">
       {/* Previous Button */}
       <button
         onClick={handlePrevious}
-        className="p-2 rounded-lg bg-gray-800/50 hover:bg-red-500/20 border border-gray-700 hover:border-red-500/50 transition-all duration-200 group"
+        className="p-1.5 rounded-lg bg-gray-800/50 hover:bg-red-500/20 border border-gray-700 hover:border-red-500/50 transition-all duration-200 group"
         aria-label="Previous car"
       >
-        <ChevronLeft className="w-5 h-5 text-gray-300 group-hover:text-red-300 transition-colors" />
+        <ChevronLeft className="w-4 h-4 text-gray-300 group-hover:text-red-300 transition-colors" />
       </button>
 
       {/* Car Name Display */}
-      <div className="text-center min-w-[120px]">
-        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Model</p>
-        <p className="text-white font-bold text-sm">{currentCar.name}</p>
-        <p className="text-xs text-gray-500 mt-0.5">
+      <div className="text-center min-w-[100px]">
+        <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Model</p>
+        <p className="text-white font-bold text-xs">{currentCar.name}</p>
+        <p className="text-[10px] text-gray-500 mt-0.5">
           {currentIndex + 1} / {availableCars.length}
         </p>
       </div>
@@ -51,10 +51,10 @@ export default function CarSelector({ currentCarId, onCarChange, availableCars }
       {/* Next Button */}
       <button
         onClick={handleNext}
-        className="p-2 rounded-lg bg-gray-800/50 hover:bg-red-500/20 border border-gray-700 hover:border-red-500/50 transition-all duration-200 group"
+        className="p-1.5 rounded-lg bg-gray-800/50 hover:bg-red-500/20 border border-gray-700 hover:border-red-500/50 transition-all duration-200 group"
         aria-label="Next car"
       >
-        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-red-300 transition-colors" />
+        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-red-300 transition-colors" />
       </button>
     </div>
   )

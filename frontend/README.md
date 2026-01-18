@@ -2,6 +2,25 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Environment Setup
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. Edit `.env.local` and configure the required environment variables:
+   - `NEXT_PUBLIC_GATEWAY_URL`: API Gateway URL (default: http://localhost:8080)
+     - **All REST API requests go through the gateway** - this is the single entry point
+   - `NEXT_PUBLIC_MQTT_URL`: MQTT WebSocket URL (default: ws://localhost:15675/ws)
+     - **MQTT bypasses the gateway** and connects directly to RabbitMQ for real-time updates
+   - `NEXT_PUBLIC_MQTT_USERNAME`: MQTT username (required)
+   - `NEXT_PUBLIC_MQTT_PASSWORD`: MQTT password (required)
+
+**Note:** `.env.local` is gitignored and will not be committed. Never commit credentials to the repository.
+
+### Running the Development Server
+
 First, run the development server:
 
 ```bash

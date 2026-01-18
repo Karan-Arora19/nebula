@@ -144,97 +144,6 @@ export const mockVehicle = {
         },
       ],
     },
-    {
-      id: "spoilers",
-      name: "Spoilers",
-      icon: "🛫",
-      parts: [
-        {
-          id: "spoiler-1",
-          name: "None",
-          cost: 0,
-          visualKey: "none",
-          description: "No spoiler",
-        },
-        {
-          id: "spoiler-2",
-          name: "Lip Spoiler",
-          cost: 1200,
-          visualKey: "lip-spoiler",
-          description: "Subtle lip spoiler",
-        },
-        {
-          id: "spoiler-3",
-          name: "Carbon Wing",
-          cost: 3500,
-          visualKey: "carbon-wing",
-          description: "Aggressive carbon fiber wing",
-        },
-        {
-          id: "spoiler-4",
-          name: "GT Wing",
-          cost: 4500,
-          visualKey: "gt-wing",
-          description: "High downforce GT wing",
-        },
-      ],
-    },
-    {
-      id: "bumpers",
-      name: "Bumpers",
-      icon: "🚗",
-      parts: [
-        {
-          id: "bumper-1",
-          name: "Stock",
-          cost: 0,
-          visualKey: "stock",
-          description: "Standard bumper",
-        },
-        {
-          id: "bumper-2",
-          name: "Sport",
-          cost: 1800,
-          visualKey: "sport",
-          description: "Aerodynamic sport bumper",
-        },
-        {
-          id: "bumper-3",
-          name: "Carbon Fiber",
-          cost: 3500,
-          visualKey: "carbon-fiber",
-          description: "Lightweight carbon fiber",
-        },
-      ],
-    },
-    {
-      id: "exhaust",
-      name: "Exhaust",
-      icon: "💨",
-      parts: [
-        {
-          id: "exhaust-1",
-          name: "Stock",
-          cost: 0,
-          visualKey: "stock",
-          description: "Factory exhaust",
-        },
-        {
-          id: "exhaust-2",
-          name: "Sport",
-          cost: 2200,
-          visualKey: "sport",
-          description: "Enhanced sport exhaust",
-        },
-        {
-          id: "exhaust-3",
-          name: "Titanium",
-          cost: 4500,
-          visualKey: "titanium",
-          description: "Lightweight titanium system",
-        },
-      ],
-    },
   ],
 };
 
@@ -248,7 +157,4 @@ export const defaultConfiguration = {
   paint: "racing-red",
   rims: "sport",
   interior: "black",
-  spoilers: "none",
-  bumpers: "stock",
-  exhaust: "stock",
 };

@@ -3,6 +3,8 @@ spring:
     name: gateway-service
   config:
     import: optional:configserver:http://localhost:8761
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     web-application-type: reactive
   cloud:
@@ -13,22 +15,44 @@ spring:
         locator:
           enabled: false
       routes:
+        # User Service Routes
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+
         # World-View Service Routes
         - id: world-view-routes
-          uri: lb://WORLD-VIEW
+          uri: lb://world-view
           predicates:
             - Path=/api/v1/routes/**
 
         - id: world-view-journeys
-          uri: lb://WORLD-VIEW
+          uri: lb://world-view
           predicates:
             - Path=/api/v1/journeys/**
+
+        # Vehicle Service Routes
+        - id: vehicle-service-vehicles
+          uri: lb://vehicle-service
+          predicates:
+            - Path=/api/v1/vehicles/**
+
+        # Merchandise Service Routes
+        - id: merchandise-service-products
+          uri: lb://merchandise-service
+          predicates:
+            - Path=/api/v1/merchandise/**
+
+        - id: merchandise-service-cart
+          uri: lb://merchandise-service
+          predicates:
+            - Path=/api/v1/cart/**
 
       globalcors:
         corsConfigurations:
           '[/**]':
-            allowedOriginPatterns:
-              - "http://localhost:3000"
+            allowedOrigins: "*"
             allowedMethods:
               - GET
               - POST
@@ -47,27 +71,30 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+    enabled: true
+    healthcheck:
+      enabled: true
+    # Retry configuration for better resilience
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 30
+    eureka-service-url-poll-interval-seconds: 10
+    # Retry configuration
+    registry-fetch-interval-seconds: 5
   instance:
     hostname: localhost
     prefer-ip-address: false
     instance-id: ${spring.application.name}:${server.port}
+    # Lease configuration
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
 
 # JWT Configuration
+# SECURITY: JWT secret must be provided via environment variable in production
+# Set JWT_SECRET environment variable with at least 32 characters
+# For test/development only, a default secret is provided below
 jwt:
-  # For testing WITHOUT user service
-  use-hardcoded-key: true
+  secret: ${JWT_SECRET:nebula-jwt-secret-key-change-in-production-minimum-32-characters-required}
 
-  # We'll generate this in Step 5
-  test-public-key: |
-    -----BEGIN PUBLIC KEY-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlG1hhfCW3l1z8o5p6MOw
-    KFuFy83dn3VTrleLu2vtWCQo8gmVvInEcR4TIKcnqy4a1vZHVpJhgKHByvIHuPhT
-    U9KdRVOMgvjH/kH+5ccH21gm0ychasmu5qVvUQvID4QXuJYATIuX8M5R8zbovaMs
-    KSR+LII0Sfr4zvgTuF2O7KmWL3gXRpkXIOYuDXtnOCddgE94CHEMe7LpHWxZ73Bs
-    bcHGC8zkk5K2vu+3eJ0FzdyPrvi59yRTzqwW9kFHQ9Kn83hgTpNoqe6MKmegCrvA
-    T5zXS6TNmvy/cjuwyxgqFyJdnV+5VtzvoxH0Wl4xNTRdp6UtfrAax/z0pNlEuHpl
-    sQIDAQAB
-    -----END PUBLIC KEY-----
 
 # Security Configuration
 security:
@@ -84,6 +111,13 @@ security:
     # World-view routes - PUBLIC for testing (remove in production)
     - /api/v1/routes/**
     - /api/v1/journeys/**
+
+    # Vehicle-service routes - PUBLIC for testing (remove in production)
+    - /api/v1/vehicles/**
+
+    # Merchandise-service routes - PUBLIC for testing (remove in production)
+    - /api/v1/merchandise/**
+    - /api/v1/cart/**
 
 management:
   endpoints:
@@ -102,4 +136,9 @@ logging:
     pse.nebula.gateway: DEBUG
     org.springframework.cloud.gateway: DEBUG
     org.springframework.cloud.loadbalancer: DEBUG
-
+    # Suppress Eureka warnings when service is unavailable (non-critical)
+    com.netflix.discovery: WARN
+    com.netflix.eureka: WARN
+    c.n.discovery.InstanceInfoReplicator: WARN
+    # Suppress Eureka shutdown de-registration errors (non-critical)
+    c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR

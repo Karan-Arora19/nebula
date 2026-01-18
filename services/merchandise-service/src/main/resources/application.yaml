@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: merchandise-service
+  # Pull shared DB/Eureka defaults from config server
+  config:
+    import: optional:configserver:http://localhost:8761
+
+  # Activate shared database profile (see platform-core config-repo)
+  profiles:
+    active: dev
+
+  # Service-specific JPA overrides only
+  jpa:
+    properties:
+      hibernate:
+        default_schema: merchandise_service
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+
+
+server:
+  port: ${SERVER_PORT:8084}
+
+logging:
+  level:
+    org.springframework: INFO
+    # Suppress Eureka shutdown errors (non-critical)
+    com.netflix.discovery: WARN
+    com.netflix.eureka: WARN
+    c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR
+
+# Eureka client configuration
+# Services will register with Eureka when available
+# Startup won't be blocked if Eureka is temporarily unavailable
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    enabled: true
+    # Retry configuration
+    registry-fetch-interval-seconds: 5
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 30
+    eureka-service-url-poll-interval-seconds: 10
+  instance:
+    prefer-ip-address: true
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90

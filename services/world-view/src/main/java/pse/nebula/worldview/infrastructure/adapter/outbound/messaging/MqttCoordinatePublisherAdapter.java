@@ -80,10 +80,8 @@ public class MqttCoordinatePublisherAdapter implements CoordinatePublisher {
 
         publishMessage(topic, update, "coordinate update");
 
-        log.debug("MQTT: Published coordinate update for journey: {} to topic: {} - Waypoint {}/{}",
-                journeyId, topic,
-                journeyState.getCurrentWaypointIndex() + 1,
-                journeyState.getRoute().waypoints().size());
+        // MQTT publishing is silent - only log errors (handled in publishMessage)
+        // Real-time updates are published continuously without logging noise
     }
 
     @Override
@@ -126,9 +124,8 @@ public class MqttCoordinatePublisherAdapter implements CoordinatePublisher {
                             if (throwable != null) {
                                 log.warn("Failed to publish {} to topic {}: {}",
                                         messageType, topic, throwable.getMessage());
-                            } else {
-                                log.trace("Successfully published {} to topic: {}", messageType, topic);
                             }
+                            // Success is silent - no logging for successful MQTT publishes
                         });
             } catch (JsonProcessingException e) {
                 log.error("Failed to serialize {} for MQTT: {}", messageType, e.getMessage());

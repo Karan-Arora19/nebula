@@ -1,100 +1,83 @@
 package pse.nebula.gateway.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.SignatureException;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
+import jakarta.annotation.PostConstruct;
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+/**
+ * JWT Validator for HMAC SHA256 signed tokens
+ *
+ * Uses the same secret key as the user-service for token validation.
+ */
 @Component
 public class JwtValidator {
 
     private static final Logger log = LoggerFactory.getLogger(JwtValidator.class);
 
-    @Value("${jwt.use-hardcoded-key:true}")
-    private boolean useHardcodedKey;
+    @Value("${jwt.secret:nebula-jwt-secret-key-change-in-production-minimum-32-characters-required}")
+    private String jwtSecret;
 
-    @Value("${jwt.test-public-key}")
-    private String testPublicKeyPem;
+    private JwtParser jwtParser;
+    private WebClient webClient;
 
-    private PublicKey publicKey;
+    public JwtValidator(JwtParser jwtParser) {
+        this.jwtParser = jwtParser;
+    }
+
+    public JwtValidator() {
+    }
+
+    /**
+     * Initialize JWT parser with HMAC SHA256 signing key
+     */
+    @PostConstruct
+    private void initialize() {
+        try {
+            SecretKey signingKey = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+            jwtParser = Jwts.parserBuilder().setSigningKey(signingKey).build();
+            webClient = WebClient.builder().build(); // Initialize WebClient
+            log.info("JWT validator initialized successfully with HMAC SHA256");
+        } catch (Exception e) {
+            log.error("Failed to initialize JWT validator", e);
+            throw new IllegalStateException("JWT validator initialization failed", e);
+        }
+    }
+
 
     /**
      * Validate JWT token and extract claims
      */
     public Claims validateToken(String token) {
         try {
-            PublicKey key = getPublicKey();
+            Jws<Claims> jwsClaims = jwtParser.parseClaimsJws(token);
+            Claims claims = jwsClaims.getBody();
 
-            Claims claims = Jwts.parser()
-                    .verifyWith(key)
-                    .build()
-                    .parseSignedClaims(token)
-                    .getPayload();
-
-            // Check expiry
             if (claims.getExpiration().before(new Date())) {
-                log.warn("Token expired at: {}", claims.getExpiration());
-                throw new RuntimeException("Token expired");
+                log.warn("Token expired at: {}. Token details: {}", claims.getExpiration(), token);
+                throw new IllegalArgumentException("Token expired");
             }
 
-            log.debug("Token validated successfully for user: {}", claims.getSubject());
+            log.debug("Token validated successfully for user: {}. Token details: {}", claims.getSubject(), token);
             return claims;
-
-        } catch (SignatureException e) {
-            log.error("Invalid JWT signature: {}", e.getMessage());
-            throw new RuntimeException("Invalid token signature");
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             log.error("Token validation failed: {}", e.getMessage());
-            throw new RuntimeException("Token validation failed: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Get public key (hardcoded for testing, JWKS in production)
-     */
-    private PublicKey getPublicKey() {
-        if (publicKey != null) {
-            return publicKey;
-        }
-
-        try {
-            if (useHardcodedKey) {
-                log.info("Using hardcoded test public key");
-                publicKey = loadPublicKeyFromPem(testPublicKeyPem);
-            } else {
-                // TODO: Fetch from JWKS endpoint when user service is ready
-                log.info("Fetching public key from JWKS endpoint");
-                throw new UnsupportedOperationException("JWKS fetching not implemented yet");
-            }
-            return publicKey;
+            throw e;
         } catch (Exception e) {
-            log.error("Failed to load public key: {}", e.getMessage());
-            throw new RuntimeException("Failed to load public key", e);
+            log.error("Unexpected error during token validation", e);
+            throw new IllegalStateException("Token validation failed", e);
         }
-    }
-
-    /**
-     * Load RSA public key from PEM format
-     */
-    private PublicKey loadPublicKeyFromPem(String pemKey) throws Exception {
-        String publicKeyPEM = pemKey
-                .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replace("-----END PUBLIC KEY-----", "")
-                .replaceAll("\\s", "");
-
-        byte[] encoded = Base64.getDecoder().decode(publicKeyPEM);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(encoded);
-        return keyFactory.generatePublic(keySpec);
     }
 
     /**
@@ -117,5 +100,13 @@ public class JwtValidator {
     public String getRoles(Claims claims) {
         Object roles = claims.get("roles");
         return roles != null ? roles.toString() : "";
+    }
+
+    public void setWebClient(WebClient webClient) {
+        this.webClient = webClient;
+    }
+
+    void setJwtParser(JwtParser jwtParser) {
+        this.jwtParser = jwtParser;
     }
 }

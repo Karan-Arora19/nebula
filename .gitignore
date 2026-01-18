@@ -4,6 +4,10 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Development profile files (contain sensitive data) ###
+**/application-dev.yaml
+**/application-dev.yml
+
 ### STS ###
 .apt_generated
 .classpath
@@ -32,16 +36,8 @@ build/
 ### VS Code ###
 .vscode/
 
-### Environment Variables ###
-.env
-.env.local
-.env.*.local
-**/.env
-**/.env.local
-**/.env.*.local
-services/**/.env
-services/**/.env.local
-services/**/.env.*.local
+### Docs of world-view service ###
+services/world-view/docs/
 
 ### Frontend (Node/Next.js) ###
 node_modules/
@@ -65,3 +61,78 @@ yarn-error.log*
 next-env.d.ts
 .DS_Store
 *.pem
+
+### Sensitive Files & Secrets ###
+# Environment Variables
+.env
+.env.*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+**/.env
+**/.env.*
+**/.env.local
+services/**/.env
+services/**/.env.*
+services/**/.env.local
+docker/.env
+docker/.env.*
+
+# Credentials & Keys
+**/credentials.yml
+**/credentials.yaml
+**/secrets.yml
+**/secrets.yaml
+*.key
+*.pem
+*.p12
+*.pfx
+*.cer
+*.crt
+*.der
+*.jks
+*.keystore
+*.truststore
+application-secrets.yml
+application-secrets.yaml
+application-credentials.yml
+application-credentials.yaml
+
+# Configuration files with sensitive data
+**/application-prod.yml
+**/application-prod.yaml
+**/application-production.yml
+**/application-production.yaml
+**/config/secrets/
+**/config/credentials/
+
+# Logs with potentially sensitive data
+*.log
+logs/
+**/logs/
+
+# Docker secrets
+docker-compose.override.yml
+docker-compose.prod.yml
+docker-compose.production.yml
+
+# IDE configuration with sensitive data
+.run/
+.idea/dataSources.xml
+.idea/dataSources.local.xml
+.idea/httpRequests/
+
+# Test data with sensitive information
+**/test-data/sensitive/
+**/fixtures/sensitive/
+
+# Redis source files
+redis-stable/
+redis-stable.tar.gz
+
+# Test scripts and documentation
+test-*.sh
+build-*.txt
+REDIS_*.md
+TEST_*.md

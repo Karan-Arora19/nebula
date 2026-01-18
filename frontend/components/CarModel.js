@@ -42,23 +42,24 @@ export default function CarModel({ modelPath, configuration, paintMaterial, onEr
     }
   }, [scene, hasError, onLoad, modelPath])
 
-  // Apply materials to the car
+  // Apply materials to the car - Memoized to prevent unnecessary recalculations
   useEffect(() => {
-    if (scene && paintMaterial) {
-      scene.traverse((child) => {
-        if (child.isMesh) {
-          // Create PBR material for car body
-          const material = new THREE.MeshStandardMaterial({
-            color: paintMaterial.color,
-            metalness: paintMaterial.metalness,
-            roughness: paintMaterial.roughness,
-            envMapIntensity: 1.5,
-            side: THREE.FrontSide,
-          })
+    if (!scene || !paintMaterial) return
 
-          // Get mesh name and check original material properties
-          const name = child.name.toLowerCase()
-          const originalMat = child.material
+    // Create material once outside the loop for better performance
+    const bodyMaterial = new THREE.MeshStandardMaterial({
+      color: paintMaterial.color.clone(), // Clone to avoid reference issues
+      metalness: paintMaterial.metalness,
+      roughness: paintMaterial.roughness,
+      envMapIntensity: 1.5,
+      side: THREE.FrontSide,
+    })
+
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        // Get mesh name and check original material properties
+        const name = child.name.toLowerCase()
+        const originalMat = child.material
           
           // Detect glass by material properties (transparency, transmission)
           const isGlass = originalMat && (
@@ -139,15 +140,15 @@ export default function CarModel({ modelPath, configuration, paintMaterial, onEr
             })
             child.castShadow = true
           } else if (name.includes('body') || name.includes('paint') || name.includes('hood') || name.includes('door') || name.includes('roof') || name.includes('fender') || name.includes('bumper')) {
-            // Main car body - use paint material
-            child.material = material
+            // Main car body - use paint material (reuse material instance)
+            child.material = bodyMaterial
             child.castShadow = true
             child.receiveShadow = true
           } else {
             // Default: If it's a large colored mesh, it's probably body paint
             // If it's small/dark, keep original
             if (originalMat && !isDark && !isGlass) {
-              child.material = material
+              child.material = bodyMaterial
               child.castShadow = true
               child.receiveShadow = true
             } else if (originalMat) {
@@ -155,17 +156,16 @@ export default function CarModel({ modelPath, configuration, paintMaterial, onEr
               child.castShadow = true
               child.receiveShadow = true
             }
-          }
         }
-      })
-    }
+      }
+    })
   }, [scene, paintMaterial, configuration])
 
-  // Subtle rotation animation
-  useFrame((state) => {
+  // Subtle rotation animation - Optimized to only run when needed
+  useFrame((state, delta) => {
     if (groupRef.current) {
-      // Very subtle idle animation
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.02
+      // Very subtle idle animation - reduced frequency for better performance
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.015
     }
   })
 

@@ -13,6 +13,9 @@ import pse.nebula.worldview.domain.port.inbound.RouteUseCase;
 import pse.nebula.worldview.domain.port.outbound.CoordinatePublisher;
 import pse.nebula.worldview.domain.port.outbound.JourneyStateRepository;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Application service that implements journey-related use cases.
  * Orchestrates the journey lifecycle and coordinates between domain and infrastructure.
@@ -27,11 +30,15 @@ public class JourneyService implements JourneyUseCase {
     private final RouteUseCase routeUseCase;
     private final JourneyStateRepository journeyStateRepository;
     private final CoordinatePublisher coordinatePublisher;
+    
+    // Track last logged milestone per journey to avoid duplicate logs
+    private final Map<String, Double> lastLoggedMilestone = new ConcurrentHashMap<>();
+    
+    // Milestone thresholds (0%, 25%, 50%, 75%, 90%, 100%)
+    private static final double[] MILESTONES = {0.0, 25.0, 50.0, 75.0, 90.0, 100.0};
 
     @Override
     public JourneyState startNewJourney(String journeyId, double speedMetersPerSecond) {
-        log.info("Starting new journey with ID: {} at speed: {} m/s", journeyId, speedMetersPerSecond);
-
         // Get a random route
         DrivingRoute route = routeUseCase.getRandomRoute();
 
@@ -50,7 +57,10 @@ public class JourneyService implements JourneyUseCase {
         // Publish journey started event
         coordinatePublisher.publishJourneyStarted(journeyState);
 
-        log.info("Journey started successfully: {} on route: {}", journeyId, route.name());
+        // Log journey start with correlation ID and key details
+        log.info("[Journey: {}] Started - Route: \"{}\" ({} waypoints, {} m/s)",
+                journeyId, route.name(), route.getTotalWaypoints(), speedMetersPerSecond);
+        
         return journeyState;
     }
 
@@ -64,36 +74,59 @@ public class JourneyService implements JourneyUseCase {
     public Coordinate advanceJourney(String journeyId, double elapsedSeconds) {
         JourneyState journeyState = getJourneyState(journeyId);
 
-        int totalWaypoints = journeyState.getRoute().waypoints().size();
+        int totalWaypoints = journeyState.getRoute().getTotalWaypoints();
+        double totalDistance = journeyState.getRoute().totalDistanceMeters();
 
         boolean completed = journeyState.advance(elapsedSeconds);
 
         // Save updated state
         journeyStateRepository.save(journeyState);
 
-        // Publish coordinate update
+        // Publish coordinate update (always publish to MQTT for real-time updates)
         Coordinate currentPosition = journeyState.getCurrentPosition();
         int currentWaypoint = journeyState.getCurrentWaypointIndex();
         double progress = journeyState.getProgressPercentage();
         
-        // Log every 10th waypoint or milestones (10%, 25%, 50%, 75%, 90%)
-        if (currentWaypoint % 10 == 0 || currentWaypoint == 1 || 
-            (progress > 10 && progress < 11) || (progress > 25 && progress < 26) ||
-            (progress > 50 && progress < 51) || (progress > 75 && progress < 76) ||
-            (progress > 90 && progress < 91)) {
-            log.info("Journey {} - Waypoint {}/{} ({}%) - Position: [{}, {}]",
-                    journeyId, 
-                    currentWaypoint + 1, 
-                    totalWaypoints,
+        // Check if we've crossed a milestone threshold (0%, 25%, 50%, 75%, 90%, 100%)
+        Double lastMilestone = lastLoggedMilestone.get(journeyId);
+        double crossedMilestone = -1;
+        
+        for (double milestone : MILESTONES) {
+            // Check if we've crossed this milestone (current >= milestone and last logged < milestone)
+            if (progress >= milestone && (lastMilestone == null || lastMilestone < milestone)) {
+                crossedMilestone = milestone;
+                lastLoggedMilestone.put(journeyId, milestone);
+                break;
+            }
+        }
+        
+        // Only log when we cross a milestone
+        if (crossedMilestone >= 0) {
+            log.info("[Journey: {}] Progress: {}% ({}/{} waypoints) - Position: [{}, {}]",
+                    journeyId,
                     String.format("%.1f", progress),
+                    currentWaypoint + 1,
+                    totalWaypoints,
                     String.format("%.6f", currentPosition.latitude()),
                     String.format("%.6f", currentPosition.longitude()));
         }
+        // No logging for non-milestone progress - MQTT handles real-time updates
         
         coordinatePublisher.publishCoordinateUpdate(journeyId, currentPosition, journeyState);
 
         if (completed) {
-            log.info("=== JOURNEY COMPLETED: {} - Successfully reached destination! ===", journeyId);
+            // Calculate completion summary
+            double distanceKm = totalDistance / 1000.0;
+            double avgSpeedMps = journeyState.getSpeedMetersPerSecond();
+            double avgSpeedKmh = avgSpeedMps * 3.6;
+            
+            // Log completion with summary metrics
+            log.info("[Journey: {}] Completed - Distance: {}km, Avg Speed: {} m/s ({} km/h)",
+                    journeyId,
+                    String.format("%.2f", distanceKm),
+                    String.format("%.2f", avgSpeedMps),
+                    String.format("%.1f", avgSpeedKmh));
+            
             coordinatePublisher.publishJourneyCompleted(journeyState);
         }
 
@@ -103,7 +136,9 @@ public class JourneyService implements JourneyUseCase {
 
     @Override
     public void stopJourney(String journeyId) {
-        log.info("Stopping journey: {}", journeyId);
+        log.debug("[Journey: {}] Stopping and cleaning up", journeyId);
+        // Clean up milestone tracking
+        lastLoggedMilestone.remove(journeyId);
         journeyStateRepository.delete(journeyId);
     }
 

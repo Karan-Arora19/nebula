@@ -20,6 +20,7 @@ export default function WorldDrivePage() {
   const [currentPosition, setCurrentPosition] = useState(null)
   const [isConnecting, setIsConnecting] = useState(true)
   const [error, setError] = useState(null)
+  const [mqttError, setMqttError] = useState(null)
 
   // Refs
   const cleanupRef = useRef(null)
@@ -93,18 +94,33 @@ export default function WorldDrivePage() {
     currentJourneyIdRef.current = journeyId
 
     console.log('Subscribing to journey:', journeyId)
-    cleanupRef.current = worldDriveApi.subscribeToJourney(
-      journeyId,
-      handleCoordinateUpdate,
-      {
-        onError: (err) => {
-          console.error('MQTT connection error:', err)
-        },
-        onEvent: (event) => {
-          console.log('Journey event:', event)
+    try {
+      cleanupRef.current = worldDriveApi.subscribeToJourney(
+        journeyId,
+        handleCoordinateUpdate,
+        {
+          onError: (err) => {
+            console.error('MQTT connection error:', err)
+            setMqttError(err.message || 'Failed to connect to MQTT broker')
+          },
+          onEvent: (event) => {
+            console.log('Journey event:', event)
+            // Handle MQTT error events
+            if (event.type === 'mqtt-error') {
+              setMqttError(event.message || event.error || 'MQTT connection failed')
+            } else if (event.type === 'journey-completed') {
+              // Clear MQTT error on journey completion
+              setMqttError(null)
+            }
+          }
         }
-      }
-    )
+      )
+      // Clear MQTT error on successful subscription
+      setMqttError(null)
+    } catch (err) {
+      console.error('Failed to subscribe to MQTT:', err)
+      setMqttError(err.message || 'Failed to connect to MQTT broker. Real-time updates will not be available.')
+    }
   }, [handleCoordinateUpdate, cleanupConnection])
 
   // Poll for current journey
@@ -138,8 +154,12 @@ export default function WorldDrivePage() {
       setError(null)
     } catch (err) {
       console.error('Failed to poll journey:', err)
-      setError('Failed to connect to backend. Is the server running?')
+      const errorMessage = err.message || 'Failed to connect to backend. Please ensure the gateway-service and world-view service are running.'
+      setError(errorMessage)
       setIsConnecting(false)
+      
+      // Don't keep polling aggressively if there's a persistent error
+      // Will retry on next interval
     }
   }, [journeyState?.status, subscribeToJourney, cleanupConnection])
 
@@ -173,14 +193,41 @@ export default function WorldDrivePage() {
             status={status}
           />
 
-          {/* Error toast */}
+          {/* Backend API Error toast */}
           {error && (
             <div className="absolute top-4 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-red-900 border border-red-700 text-red-100 p-4 rounded-lg shadow-lg z-[1000]">
               <div className="flex items-start justify-between">
-                <p className="text-sm">{error}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold mb-1">Backend Connection Error</p>
+                  <p className="text-xs opacity-90">{error}</p>
+                </div>
                 <button
                   onClick={() => setError(null)}
-                  className="text-red-300 hover:text-red-100 ml-2"
+                  className="text-red-300 hover:text-red-100 ml-2 flex-shrink-0"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* MQTT Connection Error toast */}
+          {mqttError && (
+            <div className={`absolute ${error ? 'top-24' : 'top-4'} left-4 right-4 md:left-auto md:right-4 md:w-96 bg-orange-900 border border-orange-700 text-orange-100 p-4 rounded-lg shadow-lg z-[1000]`}>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-semibold mb-1 flex items-center gap-2">
+                    <span>⚠️</span>
+                    MQTT Broker Not Connected
+                  </p>
+                  <p className="text-xs opacity-90">{mqttError}</p>
+                  <p className="text-xs opacity-75 mt-2">
+                    Real-time position updates are disabled. Journey status will still update via API polling.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setMqttError(null)}
+                  className="text-orange-300 hover:text-orange-100 ml-2 flex-shrink-0"
                 >
                   ✕
                 </button>

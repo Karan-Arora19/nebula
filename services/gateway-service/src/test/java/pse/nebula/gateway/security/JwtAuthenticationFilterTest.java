@@ -39,6 +39,10 @@ class JwtAuthenticationFilterTest {
     @Mock
     private GatewayFilterChain chain;
 
+    // Added mock for TokenBlacklistClient to prevent NPEs
+    @Mock
+    private TokenBlacklistClient tokenBlacklistClient;
+
     @InjectMocks
     private JwtAuthenticationFilter filter;
 
@@ -46,10 +50,21 @@ class JwtAuthenticationFilterTest {
     void setUp() {
         // Default behavior: chain continues
         lenient().when(chain.filter(any(ServerWebExchange.class))).thenReturn(Mono.empty());
+        // Default blacklist check returns not blacklisted
+        lenient().when(tokenBlacklistClient.isTokenBlacklisted(anyString())).thenReturn(Mono.just(false));
+        // Ensure the filter has the mocked tokenBlacklistClient (explicit injection)
+        filter.setTokenBlacklistClient(tokenBlacklistClient);
+    }
+
+    // Helper to ensure mock is injected for every test
+    void ensureBlacklistClientInjected() {
+        if (filter == null || tokenBlacklistClient == null) return;
+        filter.setTokenBlacklistClient(tokenBlacklistClient);
     }
 
     @Test
     void testFilter_PublicRoute_BypassesAuthentication() {
+        ensureBlacklistClientInjected();
         // Given: A public route
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/actuator/health")
@@ -72,6 +87,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_MissingAuthorizationHeader_ReturnsUnauthorized() {
+        ensureBlacklistClientInjected();
         // Given: A protected route without Authorization header
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/v1/protected")
@@ -94,6 +110,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_InvalidAuthorizationHeaderFormat_ReturnsUnauthorized() {
+        ensureBlacklistClientInjected();
         // Given: A protected route with invalid Authorization header format
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/v1/protected")
@@ -117,6 +134,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_ValidToken_ContinuesWithUserHeaders() {
+        ensureBlacklistClientInjected();
         // Given: A protected route with valid token
         String token = "valid.jwt.token";
         MockServerHttpRequest request = MockServerHttpRequest
@@ -154,6 +172,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_TokenValidationFails_ReturnsUnauthorized() {
+        ensureBlacklistClientInjected();
         // Given: A protected route with invalid token
         String token = "invalid.jwt.token";
         MockServerHttpRequest request = MockServerHttpRequest
@@ -179,6 +198,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_NullUserInfo_AddsEmptyHeaders() {
+        ensureBlacklistClientInjected();
         // Given: Valid token but null user info
         String token = "valid.jwt.token";
         MockServerHttpRequest request = MockServerHttpRequest
@@ -215,6 +235,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_DifferentHttpMethods_WorksForAll() {
+        ensureBlacklistClientInjected();
         // Given: Setup for multiple HTTP methods
         String token = "valid.jwt.token";
         Claims mockClaims = mock(Claims.class);
@@ -235,6 +256,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_MultiplePublicRoutes_BypassesAll() {
+        ensureBlacklistClientInjected();
         // Given: Multiple public routes
         var publicPaths = Arrays.asList(
                 "/actuator/health",
@@ -260,6 +282,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testGetOrder_ReturnsNegative100() {
+        ensureBlacklistClientInjected();
         // When: Getting filter order
         int order = filter.getOrder();
 
@@ -269,6 +292,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_CaseSensitivePath_WorksCorrectly() {
+        ensureBlacklistClientInjected();
         // Given: Path with mixed case
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/Api/V1/Protected")
@@ -289,6 +313,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_PathWithQueryParams_WorksCorrectly() {
+        ensureBlacklistClientInjected();
         // Given: Path with query parameters
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/v1/routes/123?includeDetails=true")
@@ -317,6 +342,7 @@ class JwtAuthenticationFilterTest {
 
     @Test
     void testFilter_EmptyRoles_AddsEmptyRolesHeader() {
+        ensureBlacklistClientInjected();
         // Given: Valid token with no roles
         String token = "valid.jwt.token";
         MockServerHttpRequest request = MockServerHttpRequest
@@ -360,4 +386,3 @@ class JwtAuthenticationFilterTest {
         StepVerifier.create(result).verifyComplete();
     }
 }
-

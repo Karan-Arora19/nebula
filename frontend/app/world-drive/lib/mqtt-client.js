@@ -21,6 +21,14 @@ class MqttJourneyClient {
       return this.connectionPromise
     }
 
+    // Check if credentials are provided
+    if (!MQTT_USERNAME || !MQTT_PASSWORD) {
+      const error = new Error('MQTT credentials not configured. Please set NEXT_PUBLIC_MQTT_USERNAME and NEXT_PUBLIC_MQTT_PASSWORD environment variables.')
+      console.warn(error.message)
+      this.connectionPromise = Promise.reject(error)
+      return this.connectionPromise
+    }
+
     this.connectionPromise = new Promise((resolve, reject) => {
       const options = {
         clientId: `neon-world-drive-${Math.random().toString(16).slice(2, 10)}`,
@@ -47,12 +55,17 @@ class MqttJourneyClient {
         console.error('MQTT connection error:', error)
         this.isConnected = false
         this.connectionPromise = null
+        // Don't reject immediately - allow retry
+        if (error.message?.includes('Bad username or password')) {
+          console.warn('MQTT authentication failed. Please check credentials.')
+        }
         reject(error)
       })
 
       this.client.on('close', () => {
         console.log('MQTT connection closed')
         this.isConnected = false
+        this.connectionPromise = null
       })
 
       this.client.on('reconnect', () => {
@@ -68,10 +81,33 @@ class MqttJourneyClient {
   }
 
   async subscribeToJourney(journeyId, onUpdate, onEvent) {
-    await this.connect()
+    try {
+      await this.connect()
+    } catch (error) {
+      const errorMessage = error.message || 'Failed to connect to MQTT broker'
+      console.error('MQTT connection failed:', errorMessage)
+      // Propagate error to caller so they can show notification
+      if (onEvent) {
+        onEvent({
+          type: 'mqtt-error',
+          error: errorMessage,
+          message: 'Real-time position updates are unavailable. Please check MQTT broker connection and credentials.'
+        })
+      }
+      throw new Error(`MQTT connection failed: ${errorMessage}. Real-time updates will not be available.`)
+    }
 
-    if (!this.client) {
-      throw new Error('MQTT client not connected')
+    if (!this.client || !this.isConnected) {
+      const errorMessage = 'MQTT client not connected'
+      console.error(errorMessage)
+      if (onEvent) {
+        onEvent({
+          type: 'mqtt-error',
+          error: errorMessage,
+          message: 'Real-time position updates are unavailable. MQTT client is not connected.'
+        })
+      }
+      throw new Error(`${errorMessage}. Real-time updates will not be available.`)
     }
 
     const positionTopic = `nebula/journey/${journeyId}/position`

@@ -17,15 +17,16 @@ spring:
 
   # Activate shared-database profile to get DB config from config server
   profiles:
-    active: shared-database
+    active: dev
 
   # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
   # Only override JPA schema - all other DB config comes from config server
   jpa:
+    open-in-view: false # Disable to prevent lazy loading issues during view rendering
     properties:
       hibernate:
         default_schema: world_view
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Note: dialect is auto-detected by Hibernate from JDBC URL, no need to specify
 
 
 # Server Configuration
@@ -33,22 +34,43 @@ server:
   port: ${SERVER_PORT:8082}
 
 # Service-specific Eureka instance configuration
+# Services will register with Eureka when available
 eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    enabled: true
+    # Retry configuration
+    registry-fetch-interval-seconds: 5
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 30
+    eureka-service-url-poll-interval-seconds: 10
   instance:
     hostname: localhost
     instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
 
 # Service-specific Logging
 logging:
   level:
     root: INFO
     pse.nebula.worldview: INFO
+    # Detailed journey progress only in DEBUG mode
+    pse.nebula.worldview.application.service.JourneyService: INFO
     # Suppress noisy framework logs
     org.hibernate: WARN
     org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
     com.zaxxer.hikari: WARN
     org.springframework: WARN
     org.apache: WARN
+    # Suppress Eureka shutdown errors (non-critical)
+    com.netflix.discovery: WARN
+    com.netflix.eureka: WARN
+    c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR
 
 # Actuator Configuration
 management:

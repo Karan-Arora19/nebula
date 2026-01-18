@@ -1,0 +1,74 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: user-service
+  
+  # Import configurations from Config Server
+  config:
+    import: optional:configserver:http://localhost:8761
+  
+  # Activate shared-database profile to get DB config from config server
+  profiles:
+    active: dev
+  
+  # ============ SERVICE-SPECIFIC OVERRIDES ONLY ============
+  # All database config comes from Platform-Core Config Server
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        default_schema: user_service
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Eureka Configuration
+# Services will register with Eureka when available
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    enabled: true
+    # Retry configuration
+    registry-fetch-interval-seconds: 5
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 30
+    eureka-service-url-poll-interval-seconds: 10
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# Admin User Configuration
+# Set ADMIN_DEFAULT_PASSWORD environment variable to create default admin user on first startup
+# Example: export ADMIN_DEFAULT_PASSWORD=your-secure-password
+admin:
+  default:
+    email: ${ADMIN_DEFAULT_EMAIL:admin@nebula.com}
+    password: ${ADMIN_DEFAULT_PASSWORD}
+
+# JWT Configuration
+# SECURITY: JWT secret must be provided via environment variable in production
+# Set JWT_SECRET environment variable with at least 32 characters
+# For test/development only, a default secret is provided below
+jwt:
+  secret: ${JWT_SECRET:nebula-jwt-secret-key-change-in-production-minimum-32-characters-required}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    # Suppress Eureka shutdown errors (non-critical)
+    com.netflix.discovery: WARN
+    com.netflix.eureka: WARN
+    c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR

@@ -50,8 +50,7 @@ public class JourneyController {
     })
     @GetMapping("/current")
     public ResponseEntity<JourneyStateDto> getCurrentJourney() {
-        log.debug("Fetching current active journey");
-
+        // Silent polling - no logging for routine frontend polling requests
         Optional<JourneyState> activeJourney = autoJourneySchedulerService.getActiveJourneyState();
 
         if (activeJourney.isPresent()) {
@@ -84,7 +83,8 @@ public class JourneyController {
     public ResponseEntity<JourneyStateDto> getJourneyState(
             @Parameter(description = "Unique journey identifier", example = "auto-journey-abc12345")
             @PathVariable String journeyId) {
-        log.debug("Fetching state for journey: {}", journeyId);
+        // Log only at TRACE level - routine lookups don't need logging
+        log.trace("Fetching state for journey: {}", journeyId);
 
         JourneyState journeyState = journeyUseCase.getJourneyState(journeyId);
         return ResponseEntity.ok(dtoMapper.toDto(journeyState));

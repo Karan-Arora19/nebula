@@ -1,10 +1,22 @@
 'use client'
 
-import React, { Suspense, useState } from 'react'
+import React, { Suspense, useState, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Environment, ContactShadows, PerspectiveCamera, Html } from '@react-three/drei'
 import CarModel from './CarModel'
 import * as THREE from 'three'
+
+// Color mapping - moved outside component to prevent recreation on every render
+// This is a major performance optimization
+const COLOR_MAP = {
+  'racing-red': { color: new THREE.Color(0xdc2626), metalness: 0.9, roughness: 0.1 },
+  'midnight-black': { color: new THREE.Color(0x0a0a0a), metalness: 0.8, roughness: 0.2 },
+  'pearl-white': { color: new THREE.Color(0xf5f5f5), metalness: 0.7, roughness: 0.2 },
+  'ocean-blue': { color: new THREE.Color(0x2563eb), metalness: 0.9, roughness: 0.1 },
+  'silver-metallic': { color: new THREE.Color(0xc0c0c0), metalness: 0.95, roughness: 0.05 },
+  'sunset-orange': { color: new THREE.Color(0xf97316), metalness: 0.9, roughness: 0.1 },
+  'electric-green': { color: new THREE.Color(0x10b981), metalness: 0.88, roughness: 0.12 },
+}
 
 // Loading component for 3D scene - adapted to Nebula red theme
 function Loader() {
@@ -54,13 +66,14 @@ function SceneLighting() {
       {/* Ambient light for overall illumination */}
       <ambientLight intensity={0.4} />
       
-      {/* Main key light (front-right) */}
+      {/* Main key light (front-right) - Reduced shadow quality for performance */}
       <directionalLight
         position={[5, 8, 5]}
         intensity={1.5}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-bias={-0.0001}
       />
       
       {/* Fill light (front-left) */}
@@ -114,28 +127,20 @@ function SceneLighting() {
 export default function Vehicle3DScene({ vehicleName, configuration, modelPath, onModelLoad }) {
   const [modelError, setModelError] = useState(false)
 
-  // Get paint color from configuration
+  // Get paint color from configuration - memoized to prevent unnecessary recalculations
   const paintColor = configuration.paint || 'racing-red'
   
-  // Color mapping - adapted for Nebula colors
-  const colorMap = {
-    'racing-red': { color: new THREE.Color(0xdc2626), metalness: 0.9, roughness: 0.1 },
-    'midnight-black': { color: new THREE.Color(0x0a0a0a), metalness: 0.8, roughness: 0.2 },
-    'pearl-white': { color: new THREE.Color(0xf5f5f5), metalness: 0.7, roughness: 0.2 },
-    'ocean-blue': { color: new THREE.Color(0x2563eb), metalness: 0.9, roughness: 0.1 },
-    'silver-metallic': { color: new THREE.Color(0xc0c0c0), metalness: 0.95, roughness: 0.05 },
-    'sunset-orange': { color: new THREE.Color(0xf97316), metalness: 0.9, roughness: 0.1 },
-    'electric-green': { color: new THREE.Color(0x10b981), metalness: 0.88, roughness: 0.12 },
-  }
-
-  const currentMaterial = colorMap[paintColor] || colorMap['racing-red']
+  // Memoize material lookup - only recalculate when paintColor changes
+  const currentMaterial = useMemo(() => {
+    return COLOR_MAP[paintColor] || COLOR_MAP['racing-red']
+  }, [paintColor])
 
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-gray-900 via-black to-gray-900">
       {/* Ambient background glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50 pointer-events-none"></div>
       
-      {/* 3D Canvas */}
+      {/* 3D Canvas - Optimized settings for better performance */}
       <Canvas
         shadows
         gl={{
@@ -143,7 +148,12 @@ export default function Vehicle3DScene({ vehicleName, configuration, modelPath, 
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.2,
           outputColorSpace: THREE.SRGBColorSpace,
+          powerPreference: "high-performance", // Prefer GPU performance
+          stencil: false, // Disable stencil buffer for better performance
+          depth: true,
         }}
+        dpr={[1, 2]} // Limit pixel ratio for better performance on high-DPI displays
+        performance={{ min: 0.5 }} // Reduce quality if FPS drops below 30
         className="bg-gradient-to-b from-black via-gray-900 to-black"
       >
         {/* Camera setup */}
@@ -180,7 +190,7 @@ export default function Vehicle3DScene({ vehicleName, configuration, modelPath, 
             far={4}
           />
 
-          {/* Orbit controls for 360° viewing */}
+          {/* Orbit controls for 360° viewing - Optimized for performance */}
           <OrbitControls
             enablePan={true}
             enableZoom={true}
@@ -190,10 +200,10 @@ export default function Vehicle3DScene({ vehicleName, configuration, modelPath, 
             minPolarAngle={Math.PI / 6}
             maxPolarAngle={Math.PI / 2}
             autoRotate={false}
-            autoRotateSpeed={0.5}
-            dampingFactor={0.05}
+            dampingFactor={0.1}
             rotateSpeed={0.5}
             target={[0, 0.5, 0]}
+            makeDefault
           />
         </Suspense>
       </Canvas>

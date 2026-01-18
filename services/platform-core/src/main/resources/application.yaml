@@ -2,7 +2,7 @@ spring:
   application:
     name: platform-core
   profiles:
-    active: native  # Explicitly activate native Config Server backend
+    active: ${SPRING_PROFILES_ACTIVE:dev,native}  # Explicitly activate native Config Server backend
   cloud:
     config:
       server:
