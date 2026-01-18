@@ -13,7 +13,7 @@ export default function Navigation() {
     { href: '/car-configurator', label: 'Car Configurator', icon: Settings },
     { href: '/world-drive', label: 'World Drive', icon: MapPin },
     { href: '/merchandise', label: 'Merchandise', icon: ShoppingCart },
-    { href: '/my-car', label: 'My PSE Car', icon: User }
+    { href: '/my-car', label: 'My Car', icon: User }
   ]
 
   return (
