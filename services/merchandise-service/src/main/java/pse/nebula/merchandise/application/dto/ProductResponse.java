@@ -9,8 +9,25 @@ public class ProductResponse {
         private BigDecimal price;
         private Integer stock;
         private String imageUrl;
+        private String category;
+        private String badge;
+        private BigDecimal rating;
+        private Integer reviews;
 
         public ProductResponse() {}
+
+        public ProductResponse(Long id, String name, String description, BigDecimal price, Integer stock, String imageUrl, String category, String badge, BigDecimal rating, Integer reviews) {
+                this.id = id;
+                this.name = name;
+                this.description = description;
+                this.price = price;
+                this.stock = stock;
+                this.imageUrl = imageUrl;
+                this.category = category;
+                this.badge = badge;
+                this.rating = rating;
+                this.reviews = reviews;
+        }
 
         public ProductResponse(Long id, String name, String description, BigDecimal price, Integer stock, String imageUrl) {
                 this.id = id;
@@ -68,4 +85,12 @@ public class ProductResponse {
         public void setImageUrl(String imageUrl) {
                 this.imageUrl = imageUrl;
         }
+        public String getCategory() { return category; }
+        public void setCategory(String category) { this.category = category; }
+        public String getBadge() { return badge; }
+        public void setBadge(String badge) { this.badge = badge; }
+        public BigDecimal getRating() { return rating; }
+        public void setRating(BigDecimal rating) { this.rating = rating; }
+        public Integer getReviews() { return reviews; }
+        public void setReviews(Integer reviews) { this.reviews = reviews; }
 }

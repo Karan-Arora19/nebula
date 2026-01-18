@@ -1,13 +1,27 @@
 spring:
   application:
     name: merchandise-service
-  # Pull shared DB/Eureka defaults from config server
+  # Pull shared DB/Eureka defaults from config server (optional – fallback below)
   config:
     import: optional:configserver:http://localhost:8761
 
   # Activate shared database profile (see platform-core config-repo)
   profiles:
     active: dev
+
+  # =====================================================================
+  # Fallback datasource – used when config server is unavailable
+  # Values match docker/.env defaults; override via env vars if needed
+  # =====================================================================
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:nebula_db}
+    username: ${POSTGRES_USER:nebula_user}
+    password: ${POSTGRES_PASSWORD:nebula@2025}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 20000
 
   # Service-specific JPA overrides only
   jpa:
@@ -17,6 +31,8 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
+    show-sql: false
+    open-in-view: false
 
 
 server:

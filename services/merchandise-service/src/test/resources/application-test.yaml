@@ -9,6 +9,9 @@ spring:
       ddl-auto: create-drop
     properties:
       hibernate:
+        # Ensure the schema exists before Hibernate builds tables
+        hbm2ddl.create_namespaces: true
+        default_schema: merchandise_service
         dialect: org.hibernate.dialect.H2Dialect
     show-sql: false
   main:

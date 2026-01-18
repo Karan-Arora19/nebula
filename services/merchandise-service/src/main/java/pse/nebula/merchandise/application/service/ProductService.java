@@ -43,20 +43,55 @@ public class ProductService {
             .price(request.getPrice())
             .stock(request.getStock())
             .imageUrl(request.getImageUrl())
+            .category(request.getCategory())
+            .badge(request.getBadge())
+            .rating(request.getRating())
+            .reviews(request.getReviews())
             .build();
 
         Product saved = productRepository.save(product);
         return toResponse(saved);
     }
 
+    @Transactional
+    public ProductResponse update(Long id, ProductRequest request) {
+        Product product = productRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setStock(request.getStock());
+        product.setImageUrl(request.getImageUrl());
+        product.setCategory(request.getCategory());
+        product.setBadge(request.getBadge());
+        product.setRating(request.getRating());
+        product.setReviews(request.getReviews());
+
+        Product saved = productRepository.save(product);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found");
+        }
+        productRepository.deleteById(id);
+    }
+
     private ProductResponse toResponse(Product product) {
         return new ProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getStock(),
-                product.getImageUrl()
+            product.getId(),
+            product.getName(),
+            product.getDescription(),
+            product.getPrice(),
+            product.getStock(),
+            product.getImageUrl(),
+            product.getCategory(),
+            product.getBadge(),
+            product.getRating(),
+            product.getReviews()
         );
     }
 }
