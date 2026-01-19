@@ -400,12 +400,6 @@ export default function CarConfiguratorPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-      {/* Video Intro Effect - Only plays on FIRST visit */}
-      <VideoIntroEffect
-        videoSrc="/videos/car-intro.mp4"
-        onComplete={() => {}}
-      />
-
       <ServiceStatusNotification
         status={serviceStatus}
         message={serviceMessage}
@@ -431,6 +425,11 @@ export default function CarConfiguratorPage() {
             <div className="absolute inset-[1px] rounded-xl border border-red-500/30 pointer-events-none"></div>
 
             <div className="w-full h-full relative">
+              {/* Video Intro Effect - Only plays on FIRST visit, positioned within 3D viewer */}
+              <VideoIntroEffect
+                videoSrc="/videos/car-intro.mp4"
+                onComplete={() => {}}
+              />
               {currentVehicle && (
                 <Vehicle3DScene
                   vehicleName={
