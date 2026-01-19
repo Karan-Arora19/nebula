@@ -56,7 +56,27 @@ export default function MerchandisePage() {
     : products.filter(p => p.category === selectedCategory)
 
   const addToCart = (product) => {
-    setCart([...cart, product])
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.imageUrl
+    }
+    
+    const existingCart = localStorage.getItem('cart')
+    const updatedCart = existingCart ? JSON.parse(existingCart) : []
+    
+    const existingItem = updatedCart.find(item => item.productId === product.id)
+    if (existingItem) {
+      existingItem.quantity += 1
+    } else {
+      updatedCart.push(cartItem)
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(updatedCart))
+    window.dispatchEvent(new Event('cart-updated'))
+    setCart(updatedCart)
   }
 
   const toggleFavorite = (productId) => {

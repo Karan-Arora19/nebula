@@ -19,10 +19,11 @@ export default function AdminDashboard() {
     }
 
     if (!isLoading && user && user.role !== 'ADMIN') {
-      router.push('/user-dashboard');
+      logout();
+      router.push('/login');
       return;
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, router, logout]);
 
   useEffect(() => {
     if (user) {
@@ -76,33 +77,13 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-red-600 p-2 rounded-lg">
-                  <BarChart3 className="text-white" size={28} />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-                  <p className="text-gray-600 text-sm mt-1">Welcome back, {user?.username || 'Administrator'}</p>
-                </div>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="bg-red-600 p-2 rounded-lg">
+              <BarChart3 className="text-white" size={28} />
             </div>
-            <div className="flex flex-col items-end gap-4">
-              <div className="text-right">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <p className="text-lg font-bold text-green-600">Online</p>
-                </div>
-                <p className="text-xs text-gray-600 mt-1">All systems operational</p>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition shadow-sm"
-              >
-                <LogOut size={18} />
-                Logout
-              </button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 text-sm mt-1">Welcome back, {user?.username || 'Administrator'}</p>
             </div>
           </div>
         </div>

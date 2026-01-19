@@ -1,11 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Car, ShoppingCart, MapPin, User, Settings } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Car, ShoppingCart, MapPin, User, Settings, LogOut } from 'lucide-react'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function Navigation() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { user, logout } = useAuth()
+  
+  // Don't highlight nav items on dashboard pages
+  const isDashboardPage = pathname.includes('dashboard')
 
   const navigation = [
     { href: '/', label: 'Home', icon: Car },
@@ -13,8 +19,13 @@ export default function Navigation() {
     { href: '/car-configurator', label: 'Car Configurator', icon: Settings },
     { href: '/world-drive', label: 'World Drive', icon: MapPin },
     { href: '/merchandise', label: 'Merchandise', icon: ShoppingCart },
-    { href: '/my-car', label: 'My Car', icon: User }
+    ...(user ? [{ href: '/my-car', label: 'My Car', icon: User }] : [])
   ]
+
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   return (
     <nav className="bg-black text-white sticky top-0 z-50 shadow-lg">
@@ -27,7 +38,7 @@ export default function Navigation() {
           <div className="flex gap-1">
             {navigation.map(item => {
               const Icon = item.icon
-              const isActive = pathname === item.href
+              const isActive = !isDashboardPage && pathname === item.href
               return (
                 <Link
                   key={item.href}
@@ -41,6 +52,15 @@ export default function Navigation() {
                 </Link>
               )
             })}
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden md:inline">Logout</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
