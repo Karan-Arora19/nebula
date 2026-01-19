@@ -11,6 +11,7 @@ Complete reference of all ports used by Nebula services and infrastructure.
 | **World View Service** | `8082` | `SERVER_PORT` | Journey simulation and route management API |
 | **User Service** | `8083` | `SERVER_PORT` | User authentication and profile management API |
 | **Merchandise Service** | `8084` | `SERVER_PORT` | Product catalog and shopping cart API |
+| **User Vehicle Service** | `8085` | `SERVER_PORT` | User vehicle assignments and real-time telemetry API |
 | **Platform Core** | `8761` | `SERVER_PORT` | Config Server and Eureka Service Discovery |
 
 ## 🎨 Frontend

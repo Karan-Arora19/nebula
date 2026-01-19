@@ -137,7 +137,8 @@ Database schemas are automatically initialized via SQL scripts in `docker/init-s
 3. `03-user-service-schema.sql` - User service tables
 4. `04-merchandise-service-schema.sql` - Merchandise service tables
 5. `05-world-view-service-schema.sql` - World view service tables
-6. `06-grant-access.sql` - Grants permissions
+6. `06-user-vehicle-service-schema.sql` - User vehicle service tables
+7. `07-grant-access.sql` - grants permissions
 
 ### Environment Variables
 
@@ -190,7 +191,8 @@ Database schemas are automatically initialized via SQL scripts in `docker/init-s
    psql -U $POSTGRES_USER -d $POSTGRES_DB -f docker/init-scripts/03-user-service-schema.sql
    psql -U $POSTGRES_USER -d $POSTGRES_DB -f docker/init-scripts/04-merchandise-service-schema.sql
    psql -U $POSTGRES_USER -d $POSTGRES_DB -f docker/init-scripts/05-world-view-service-schema.sql
-   psql -U $POSTGRES_USER -d $POSTGRES_DB -f docker/init-scripts/06-grant-access.sql
+   psql -U $POSTGRES_USER -d $POSTGRES_DB -f docker/init-scripts/06-user-vehicle-service-schema.sql
+   psql -U $POSTGRES_USER -d $POSTGRES_DB -f docker/init-scripts/07-grant-access.sql
    ```
 
 2. **Seed Data:**

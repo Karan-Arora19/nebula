@@ -75,6 +75,7 @@
         <module>services/user-service</module>
         <module>services/vehicle-service</module>
         <module>services/merchandise-service</module>
+        <module>services/user-vehicle-service</module>
     </modules>
 
     <build>

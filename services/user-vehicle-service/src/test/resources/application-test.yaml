@@ -1,0 +1,67 @@
+# =============================================================================
+# User Vehicle Service - Test Configuration
+# =============================================================================
+
+spring:
+  application:
+    name: user-vehicle-service
+
+  config:
+    import: ""
+
+  # H2 In-Memory Database for Tests
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        format_sql: false
+    show-sql: false
+
+  # Disable cloud config for tests
+  cloud:
+    config:
+      enabled: false
+
+# Server Configuration
+server:
+  port: 0
+
+# Disable Eureka for tests
+eureka:
+  client:
+    enabled: false
+
+# MQTT Configuration (disabled for testing)
+mqtt:
+  enabled: false
+  broker:
+    host: localhost
+    port: 1883
+  client:
+    id: user-vehicle-service-test
+  username: test
+  password: test
+  topic:
+    prefix: nebula/user
+
+# Vehicle Service Configuration
+vehicle-service:
+  base-url: http://localhost:8081
+  endpoints:
+    vehicles: /api/v1/vehicles
+
+
+# Logging
+logging:
+  level:
+    root: WARN
+    pse.nebula.uservehicleservice: DEBUG
+

@@ -1,0 +1,119 @@
+# =============================================================================
+# User Vehicle Service Configuration
+# Service for user-vehicle assignments and real-time vehicle telemetry
+# =============================================================================
+
+spring:
+  application:
+    name: user-vehicle-service
+
+  # Import configurations from Config Server
+  config:
+    import: optional:configserver:http://localhost:8761
+
+  # Activate profile
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  # JPA Configuration
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: user_vehicle_service
+        format_sql: true
+        hbm2ddl:
+          create_namespaces: true
+    show-sql: false
+
+  # Database Configuration (fallback if config server unavailable)
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5434}/${POSTGRES_DB:nebula_db}
+    username: ${POSTGRES_USER:nebula_user}
+    password: ${POSTGRES_PASSWORD:nebula@2025}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      connection-timeout: 20000
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      pool-name: UserVehicleServiceHikariPool
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8085}
+
+# Eureka Client Configuration (Required)
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+    initial-instance-info-replication-interval-seconds: 5
+    instance-info-replication-interval-seconds: 30
+  instance:
+    hostname: localhost
+    instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# MQTT Configuration
+mqtt:
+  enabled: ${MQTT_ENABLED:true}
+  broker:
+    host: ${MQTT_HOST:localhost}
+    port: ${MQTT_PORT:1883}
+  client:
+    id: user-vehicle-service
+  username: ${RABBITMQ_USER:nebula}
+  password: ${RABBITMQ_PASSWORD:nebula@2025}
+  topic:
+    prefix: nebula/user
+
+# Vehicle Service Configuration (for REST calls)
+vehicle-service:
+  base-url: ${VEHICLE_SERVICE_URL:http://localhost:8081}
+  endpoints:
+    vehicles: /api/v1/vehicles
+
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    pse.nebula.uservehicleservice: DEBUG
+    pse.nebula.uservehicleservice.infrastructure.adapter.outbound.mqtt: INFO
+    # Suppress noisy framework logs
+    org.hibernate: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    com.zaxxer.hikari: WARN
+    org.springframework: WARN
+    org.apache: WARN
+    # Suppress Eureka shutdown errors
+    com.netflix.discovery: WARN
+    com.netflix.eureka: WARN
+    c.n.d.s.t.d.RetryableEurekaHttpClient: ERROR
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# Application Info
+info:
+  app:
+    name: User Vehicle Service
+    description: Manages user-vehicle assignments and real-time vehicle telemetry
+    version: 1.0.0
+
