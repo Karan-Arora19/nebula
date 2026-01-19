@@ -1,5 +1,13 @@
 "use client";
 
+/**
+ * Vehicle3DScene - Interactive 3D Car Viewer
+ * 
+ * Renders a 3D car using React Three Fiber with orbit controls.
+ * Users can rotate, zoom, and pan around the car model.
+ * See CAR-CONFIGURATOR-DOCS.md for detailed Three.js explanations.
+ */
+
 import React, { Suspense, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
 import {
@@ -15,53 +23,25 @@ import {
   vehicle3DSceneDefaultProps,
 } from "./propTypes/Vehicle3DScene.propTypes";
 
+// Paint color material definitions (maps color ID to Three.js material props)
 const COLOR_MAP = {
-  "racing-red": {
-    color: new THREE.Color(0xdc2626),
-    metalness: 0.9,
-    roughness: 0.1,
-  },
-  "midnight-black": {
-    color: new THREE.Color(0x0a0a0a),
-    metalness: 0.8,
-    roughness: 0.2,
-  },
-  "pearl-white": {
-    color: new THREE.Color(0xf5f5f5),
-    metalness: 0.7,
-    roughness: 0.2,
-  },
-  "ocean-blue": {
-    color: new THREE.Color(0x2563eb),
-    metalness: 0.9,
-    roughness: 0.1,
-  },
-  "silver-metallic": {
-    color: new THREE.Color(0xc0c0c0),
-    metalness: 0.95,
-    roughness: 0.05,
-  },
-  "sunset-orange": {
-    color: new THREE.Color(0xf97316),
-    metalness: 0.9,
-    roughness: 0.1,
-  },
-  "electric-green": {
-    color: new THREE.Color(0x10b981),
-    metalness: 0.88,
-    roughness: 0.12,
-  },
+  "racing-red": { color: new THREE.Color(0xdc2626), metalness: 0.9, roughness: 0.1 },
+  "midnight-black": { color: new THREE.Color(0x0a0a0a), metalness: 0.8, roughness: 0.2 },
+  "pearl-white": { color: new THREE.Color(0xf5f5f5), metalness: 0.7, roughness: 0.2 },
+  "ocean-blue": { color: new THREE.Color(0x2563eb), metalness: 0.9, roughness: 0.1 },
+  "silver-metallic": { color: new THREE.Color(0xc0c0c0), metalness: 0.95, roughness: 0.05 },
+  "sunset-orange": { color: new THREE.Color(0xf97316), metalness: 0.9, roughness: 0.1 },
+  "electric-green": { color: new THREE.Color(0x10b981), metalness: 0.88, roughness: 0.12 },
 };
 
-// Scene lighting setup
-// NO-SONAR: intensity, position, castShadow, shadow-*, angle, penumbra are valid React Three Fiber props
+// Three-point lighting setup for realistic car rendering
 function SceneLighting() {
   return (
     <>
-      {/* Ambient light for overall illumination */}
+      {/* Base ambient light */}
       <ambientLight intensity={0.4} />
-
-      {/* Main key light (front-right) - Reduced shadow quality for performance */}
+      
+      {/* Key light - main shadow-casting light */}
       <directionalLight
         position={[5, 8, 5]}
         intensity={1.5}
@@ -70,50 +50,32 @@ function SceneLighting() {
         shadow-mapSize-height={1024}
         shadow-bias={-0.0001}
       />
-
-      {/* Fill light (front-left) */}
+      
+      {/* Fill light - softens shadows */}
       <directionalLight position={[-5, 4, 3]} intensity={0.8} color="#ffffff" />
-
-      {/* Back rim light for edge definition */}
+      
+      {/* Rim light - red edge glow for brand theme */}
       <directionalLight position={[0, 3, -5]} intensity={0.5} color="#ff4040" />
-
-      {/* Spotlight for dramatic effect */}
-      <spotLight
-        position={[10, 15, 10]}
-        angle={0.3}
-        penumbra={1}
-        intensity={1}
-        castShadow
-      />
+      
+      {/* Dramatic spotlight */}
+      <spotLight position={[10, 15, 10]} angle={0.3} penumbra={1} intensity={1} castShadow />
     </>
   );
 }
 
-/**
- * Vehicle3DScene Component
- *
- * Renders the 3D interactive car viewer using React Three Fiber.
- * Displays the car model with real-time color/material updates based on configuration.
- */
-export default function Vehicle3DScene({
-  configuration,
-  modelPath,
-  onModelLoad,
-}) {
-  // Get paint color from configuration - memoized to prevent unnecessary recalculations
+export default function Vehicle3DScene({ configuration, modelPath, onModelLoad }) {
   const paintColor = configuration.paint || "racing-red";
-
-  // Memoize material lookup - only recalculate when paintColor changes
+  
+  // Memoize material lookup for performance
   const currentMaterial = useMemo(() => {
     return COLOR_MAP[paintColor] || COLOR_MAP["racing-red"];
   }, [paintColor]);
 
   return (
     <div className="w-full h-full relative bg-gradient-to-br from-gray-900 via-black to-gray-900">
-      {/* Ambient background glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-black/50 pointer-events-none"></div>
 
-      {/* 3D Canvas - Optimized settings for better performance */}
+      {/* 3D Canvas - WebGL rendering context */}
       <Canvas
         shadows
         frameloop="demand"
@@ -130,18 +92,15 @@ export default function Vehicle3DScene({
         performance={{ min: 0.5 }}
         className="bg-gradient-to-b from-black via-gray-900 to-black"
       >
-        {/* Camera setup */}
-        <PerspectiveCamera makeDefault position={[4, 2, 6]} fov={50} />
+        {/* Camera: front-left view of car */}
+        <PerspectiveCamera makeDefault position={[-6, 2, -2]} fov={50} />
 
-        {/* Scene lighting */}
         <SceneLighting />
-
+        
         {/* Environment map for realistic reflections */}
         <Environment preset="city" background={false} blur={0.8} />
 
-        {/* Suspense boundary for async model loading - no fallback to avoid duplicate with RenderingEffect */}
         <Suspense fallback={null}>
-          {/* Main car model (with automatic fallback) - Key forces remount on model change */}
           <CarModel
             key={modelPath}
             modelPath={modelPath}
@@ -150,16 +109,10 @@ export default function Vehicle3DScene({
             onLoad={onModelLoad}
           />
 
-          {/* Contact shadows for realism */}
-          <ContactShadows
-            position={[0, -0.5, 0]}
-            opacity={0.5}
-            scale={15}
-            blur={2}
-            far={4}
-          />
+          {/* Ground shadow for visual grounding */}
+          <ContactShadows position={[0, -0.5, 0]} opacity={0.5} scale={15} blur={2} far={4} />
 
-          {/* Orbit controls for 360° viewing - Optimized for performance */}
+          {/* Mouse/touch controls: drag=rotate, scroll=zoom, right-drag=pan */}
           <OrbitControls
             enablePan={true}
             enableZoom={true}
@@ -177,15 +130,13 @@ export default function Vehicle3DScene({
         </Suspense>
       </Canvas>
 
-      {/* Status badges overlay - Enhanced Red theme */}
+      {/* UI Overlays */}
       <div className="absolute top-6 left-6 bg-black/80 backdrop-blur-md px-5 py-3 rounded-xl border-2 border-red-500/50 flex items-center gap-2 shadow-2xl shadow-red-500/20 pointer-events-none z-20">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
         </span>
-        <span className="text-white text-xs font-bold tracking-wider">
-          3D REAL-TIME
-        </span>
+        <span className="text-white text-xs font-bold tracking-wider">3D REAL-TIME</span>
         <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/10 to-transparent pointer-events-none"></div>
       </div>
 
@@ -196,7 +147,6 @@ export default function Vehicle3DScene({
         <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/10 to-transparent pointer-events-none"></div>
       </div>
 
-      {/* Controls hint - Enhanced */}
       <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-black/80 backdrop-blur-md px-8 py-3 rounded-xl border border-red-500/30 shadow-xl pointer-events-none z-20">
         <p className="text-gray-200 text-xs font-medium">
           🖱️ <strong className="text-red-300">Drag</strong> to rotate •{" "}

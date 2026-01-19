@@ -1,16 +1,25 @@
 "use client";
 
+/**
+ * CarModel - 3D Car Model Loader & Material Handler
+ *
+ * Loads .glb 3D models and applies custom materials to different parts
+ * (body paint, glass, tires, chrome, etc.) based on mesh names.
+ * See CAR-CONFIGURATOR-DOCS.md for detailed material system explanations.
+ */
+
 import React, { useRef, useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
-
 import {
   carModelPropTypes,
   carModelDefaultProps,
 } from "./propTypes/CarModel.propTypes";
 
-// --- Material Detection Helpers ---
+// ========== Material Detection Helpers ==========
+// Check mesh name/properties to identify car part type
+
 const isGlassMaterial = (originalMat, name) =>
   originalMat &&
   (originalMat.transparent === true ||
@@ -22,8 +31,7 @@ const isGlassMaterial = (originalMat, name) =>
     name.includes("vitre"));
 
 const isDarkMaterial = (originalMat) =>
-  originalMat &&
-  originalMat.color &&
+  originalMat?.color &&
   originalMat.color.r < 0.2 &&
   originalMat.color.g < 0.2 &&
   originalMat.color.b < 0.2;
@@ -57,7 +65,9 @@ const isBodyPart = (name) =>
   name.includes("fender") ||
   name.includes("bumper");
 
-// --- Material Creation Helpers ---
+// ========== Material Creators ==========
+// Create Three.js materials for each part type
+
 const createGlassMaterial = (originalMat) =>
   new THREE.MeshPhysicalMaterial({
     color: originalMat.color || 0x88ccff,
@@ -109,7 +119,9 @@ const createChromeMaterial = () =>
     envMapIntensity: 2.5,
   });
 
-// --- Main Material Application ---
+// ========== Main Material Application ==========
+// Analyzes each mesh and applies appropriate material
+
 const applyCarMaterial = (child, bodyMaterial) => {
   if (!child.isMesh) return;
 
@@ -119,6 +131,7 @@ const applyCarMaterial = (child, bodyMaterial) => {
   const isDark = isDarkMaterial(originalMat);
   const isChrome = isChromeMaterial(originalMat, name);
 
+  // Priority order: glass → interior → tires → lights → chrome → body
   if (isGlass) {
     child.material = createGlassMaterial(originalMat);
     child.castShadow = false;
@@ -142,8 +155,9 @@ const applyCarMaterial = (child, bodyMaterial) => {
   }
 
   if (isLightPart(name)) {
-    const isHeadlight = name.includes("head") || name.includes("front");
-    child.material = createLightMaterial(isHeadlight);
+    child.material = createLightMaterial(
+      name.includes("head") || name.includes("front"),
+    );
     return;
   }
 
@@ -160,7 +174,7 @@ const applyCarMaterial = (child, bodyMaterial) => {
     return;
   }
 
-  // Default handling: apply body material to non-dark, non-glass meshes
+  // Default: apply body material to unclassified non-dark meshes
   if (originalMat && !isDark && !isGlass) {
     child.material = bodyMaterial;
     child.castShadow = true;
@@ -171,11 +185,8 @@ const applyCarMaterial = (child, bodyMaterial) => {
   }
 };
 
-/**
- * CarModel Component
- *
- * Loads and renders a 3D car model with material customization.
- */
+// ========== Component ==========
+
 export default function CarModel({
   modelPath,
   configuration,
@@ -186,7 +197,7 @@ export default function CarModel({
   const groupRef = useRef(null);
   const [hasError, setHasError] = useState(false);
 
-  // Load the 3D model - useGLTF handles errors internally
+  // Load 3D model (.glb file)
   const { scene } = useGLTF(
     modelPath || "/models/furarri.glb",
     true,
@@ -200,24 +211,20 @@ export default function CarModel({
     },
   );
 
-  // Notify when model is loaded
+  // Notify parent when model loads
   useEffect(() => {
     if (scene && !hasError) {
-      // Small delay to ensure model is fully rendered
-      const timer = setTimeout(() => {
-        if (onLoad) onLoad();
-      }, 100);
+      const timer = setTimeout(() => onLoad?.(), 100);
       return () => clearTimeout(timer);
     }
   }, [scene, hasError, onLoad, modelPath]);
 
-  // Apply materials to the car - Memoized to prevent unnecessary recalculations
+  // Apply materials when scene or paint changes
   useEffect(() => {
     if (!scene || !paintMaterial) return;
 
-    // Create material once outside the loop for better performance
     const bodyMaterial = new THREE.MeshStandardMaterial({
-      color: paintMaterial.color.clone(), // Clone to avoid reference issues
+      color: paintMaterial.color.clone(),
       metalness: paintMaterial.metalness,
       roughness: paintMaterial.roughness,
       envMapIntensity: 1.5,
@@ -227,21 +234,16 @@ export default function CarModel({
     scene.traverse((child) => applyCarMaterial(child, bodyMaterial));
   }, [scene, paintMaterial, configuration]);
 
-  // Subtle rotation animation - Optimized to only run when needed
+  // Subtle floating animation
   useFrame((state) => {
     if (groupRef.current) {
-      // Very subtle idle animation - reduced frequency for better performance
       groupRef.current.position.y =
         Math.sin(state.clock.elapsedTime * 0.3) * 0.015;
     }
   });
 
-  // If no model found, render nothing
-  if (hasError || !scene) {
-    return null;
-  }
+  if (hasError || !scene) return null;
 
-  // NO-SONAR: object, position, rotation are valid React Three Fiber props
   return (
     <group ref={groupRef}>
       <primitive

@@ -20,12 +20,11 @@ import CustomizationPanel from "../../components/CustomizationPanel";
 import CarSelector from "../../components/CarSelector";
 import RenderingEffect from "../../components/RenderingEffect";
 import VideoIntroEffect from "../../components/VideoIntroEffect";
-import ServiceStatusNotification from "../../components/ServiceStatusNotification";
+
 import LoadingSkeleton, {
   CategoryTabSkeleton,
 } from "../../components/LoadingSkeleton";
 import { vehicleServiceApi } from "./lib/api";
-import { PROGRESS_MAX_COST } from "./constants";
 import { useAudioManager } from "../../hooks/useAudioManager";
 
 export default function CarConfiguratorPage() {
@@ -133,7 +132,7 @@ export default function CarConfiguratorPage() {
     checkServiceAndFetch();
 
     return () => {
-      isMounted = false;
+      isMounted = false
       if (retryInterval) {
         clearInterval(retryInterval);
       }
@@ -293,8 +292,9 @@ export default function CarConfiguratorPage() {
 
   /**
    * Resets the configuration to default values
+   * Uses paint change animation if the paint color changes
    */
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (!vehicleConfig) return;
 
     const defaultConfig = {};
@@ -303,15 +303,29 @@ export default function CarConfiguratorPage() {
         defaultConfig[category.id] = category.parts[0].visualKey;
       }
     });
-    setConfiguration(defaultConfig);
-  };
 
-  /**
-   * Calculate customization progress percentage
-   */
-  const progressPercentage = Math.round(
-    (customizationCost / PROGRESS_MAX_COST) * 100,
-  );
+    // Check if paint color is changing
+    const currentPaint = configuration.paint;
+    const defaultPaint = defaultConfig.paint;
+
+    if (currentPaint !== defaultPaint && defaultPaint) {
+      // Paint is changing - use the same animation as handlePartSelect
+      setIsPaintChanging(true);
+
+      playPaintSfx(() => {
+        // Apply the full reset
+        setConfiguration(defaultConfig);
+
+        // Small delay before ending flash for smooth reveal
+        setTimeout(() => {
+          setIsPaintChanging(false);
+        }, 150);
+      });
+    } else {
+      // No paint change, just reset directly
+      setConfiguration(defaultConfig);
+    }
+  }, [vehicleConfig, configuration.paint, playPaintSfx]);
 
   // Show loading state
   if (
@@ -320,10 +334,6 @@ export default function CarConfiguratorPage() {
   ) {
     return (
       <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-        <ServiceStatusNotification
-          status={serviceStatus}
-          message={serviceMessage}
-        />
         <div className="flex flex-1 items-center justify-center">
           <div className="text-center">
             <div className="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mx-auto mb-4"></div>
@@ -400,11 +410,6 @@ export default function CarConfiguratorPage() {
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
-      <ServiceStatusNotification
-        status={serviceStatus}
-        message={serviceMessage}
-      />
-
       {/* Rendering Effect Overlay */}
       <RenderingEffect
         isRendering={isRendering}
@@ -586,34 +591,6 @@ export default function CarConfiguratorPage() {
                   Save Configuration
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="mt-3 pt-3 border-t border-gray-700/50">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-gray-400 text-[10px] uppercase tracking-wider font-semibold">
-                  Customization Progress
-                </span>
-                <div className="h-0.5 w-0.5 rounded-full bg-gray-500"></div>
-                <span className="text-gray-500 text-[10px]">
-                  {progressPercentage}% complete
-                </span>
-              </div>
-              <span className="text-gray-500 text-[10px]">
-                {customizationCost > 0
-                  ? `€${customizationCost.toLocaleString()} added`
-                  : "Base configuration"}
-              </span>
-            </div>
-            <div className="h-1.5 bg-gray-800/50 rounded-full overflow-hidden backdrop-blur-sm">
-              <div
-                className="h-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 transition-all duration-700 shadow-lg shadow-red-500/50"
-                style={{
-                  width: `${Math.min((customizationCost / PROGRESS_MAX_COST) * 100, 100)}%`,
-                }}
-              ></div>
             </div>
           </div>
         </div>
