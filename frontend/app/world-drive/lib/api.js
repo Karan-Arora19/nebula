@@ -19,8 +19,22 @@ class WorldDriveApi {
       }
       return res.json()
     } catch (error) {
-      console.error('Error fetching all routes:', error)
-      throw error
+      console.warn('Backend not available, using mock routes:', error.message)
+      // Return mock routes data
+      return [
+        {
+          id: 1,
+          name: 'Monaco Grand Prix Circuit',
+          description: 'Iconic street circuit through Monaco',
+          waypoints: []
+        },
+        {
+          id: 2,
+          name: 'Alpine Mountain Route',
+          description: 'Scenic mountain drive through the Alps',
+          waypoints: []
+        }
+      ]
     }
   }
 

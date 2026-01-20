@@ -97,9 +97,6 @@ export default function Home() {
         <div className="relative z-10 text-center px-4">
           <h1 className="text-7xl font-bold mb-6 tracking-tight">NEBULA</h1>
           <p className="text-2xl mb-8 text-gray-300">Engineering Excellence, Defining Performance</p>
-          <Link href="/cars" className="inline-block bg-red-600 hover:bg-red-700 px-8 py-4 rounded-lg text-lg font-semibold transition transform hover:scale-105">
-            Explore Our Models
-          </Link>
         </div>
       </div>
       
@@ -210,15 +207,7 @@ export default function Home() {
             ))}
           </div>
 
-          {/* View All Button */}
-          <div className="text-center mt-12">
-            <Link
-              href="/cars"
-              className="inline-block bg-transparent border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-8 py-4 rounded-lg text-lg font-semibold transition"
-            >
-              View All Models
-            </Link>
-          </div>
+
         </div>
       </div>
 
@@ -264,122 +253,9 @@ export default function Home() {
             ))}
           </div>
 
-          <div className="text-center">
-            <Link
-              href="/merchandise"
-              className="inline-block bg-red-600 hover:bg-red-700 px-10 py-4 rounded-lg text-lg font-semibold transition transform hover:scale-105"
-            >
-              Shop All Merchandise
-            </Link>
-          </div>
+
         </div>
       </div>
-
-      {/* Footer */}
-      <footer className="bg-black border-t border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-16">
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
-            {/* Brand Section */}
-            <div className="lg:col-span-2">
-              <div className="flex items-center gap-2 mb-4">
-                <Car className="w-10 h-10 text-red-500" />
-                <span className="text-3xl font-bold">NEBULA</span>
-              </div>
-              <p className="text-gray-400 mb-6 max-w-md">
-                Engineering excellence and defining performance since 2024. Creating the ultimate driving experience for automotive enthusiasts worldwide.
-              </p>
-              <div className="flex gap-4">
-                <a href="#" className="bg-gray-800 hover:bg-red-600 p-3 rounded-full transition">
-                  <Facebook className="w-5 h-5" />
-                </a>
-                <a href="#" className="bg-gray-800 hover:bg-red-600 p-3 rounded-full transition">
-                  <Twitter className="w-5 h-5" />
-                </a>
-                <a href="#" className="bg-gray-800 hover:bg-red-600 p-3 rounded-full transition">
-                  <Instagram className="w-5 h-5" />
-                </a>
-                <a href="#" className="bg-gray-800 hover:bg-red-600 p-3 rounded-full transition">
-                  <Youtube className="w-5 h-5" />
-                </a>
-                <a href="#" className="bg-gray-800 hover:bg-red-600 p-3 rounded-full transition">
-                  <Linkedin className="w-5 h-5" />
-                </a>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Quick Links</h3>
-              <ul className="space-y-2">
-                <li><Link href="/cars" className="text-gray-400 hover:text-red-500 transition">Our Cars</Link></li>
-                <li><Link href="/car-configurator" className="text-gray-400 hover:text-red-500 transition">Car Configurator</Link></li>
-                <li><Link href="/world-drive" className="text-gray-400 hover:text-red-500 transition">World Drive</Link></li>
-                <li><Link href="/merchandise" className="text-gray-400 hover:text-red-500 transition">Merchandise</Link></li>
-                <li><Link href="/my-car" className="text-gray-400 hover:text-red-500 transition">My Nebula Car</Link></li>
-              </ul>
-            </div>
-
-            {/* Support */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Support</h3>
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-red-500 transition">Contact Us</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-red-500 transition">FAQ</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-red-500 transition">Warranty</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-red-500 transition">Service Centers</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-red-500 transition">Test Drive</a></li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h3 className="text-lg font-bold mb-4">Contact</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-3 text-gray-400">
-                  <MapPin className="w-5 h-5 flex-shrink-0 mt-1 text-red-500" />
-                  <span>Nebula HQ<br />Stuttgart, Germany</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-400">
-                  <Phone className="w-5 h-5 flex-shrink-0 text-red-500" />
-                  <span>+49 711 123 4567</span>
-                </li>
-                <li className="flex items-center gap-3 text-gray-400">
-                  <Mail className="w-5 h-5 flex-shrink-0 text-red-500" />
-                  <span>info@nebula.com</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Newsletter */}
-          <div className="border-t border-gray-800 pt-8 mb-8">
-            <div className="max-w-2xl mx-auto text-center">
-              <h3 className="text-2xl font-bold mb-3">Stay Updated</h3>
-              <p className="text-gray-400 mb-6">Subscribe to our newsletter for exclusive offers and updates</p>
-              <div className="flex gap-2 max-w-md mx-auto">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-red-500 transition"
-                />
-                <button className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-semibold transition">
-                  Subscribe
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Copyright */}
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
-            <p>&copy; 2024 Nebula. All rights reserved.</p>
-            <div className="flex gap-6">
-              <a href="#" className="hover:text-red-500 transition">Privacy Policy</a>
-              <a href="#" className="hover:text-red-500 transition">Terms of Service</a>
-              <a href="#" className="hover:text-red-500 transition">Cookie Policy</a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

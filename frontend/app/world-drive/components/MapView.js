@@ -33,7 +33,7 @@ const MapViewClient = dynamic(() => import('./MapViewClient'), {
 
       <div className="flex-1 relative">
         {/* Outer glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-pink-500/20 rounded-3xl blur-xl" />
+        <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 via-rose-500/10 to-pink-500/20 rounded-3xl blur-xl" />
         
         {/* Main frame container */}
         <div className="relative h-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-800 rounded-3xl p-1.5 shadow-2xl">
