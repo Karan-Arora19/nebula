@@ -4,8 +4,8 @@ import { Car, Fuel, Navigation, MapPin } from 'lucide-react'
 import { useMQTT } from '@/hooks/useMQTT'
 
 export default function MyCarPage() {
-  const fuelLevel = useMQTT('mycar/fuel')
-  const carLocation = useMQTT('mycar/location')
+  const { value: fuelLevel } = useMQTT('mycar/fuel', 75)
+  const { value: carLocation } = useMQTT('mycar/location', null)
 
   return (
     <div className="min-h-screen bg-gray-900 text-white py-16 px-4">

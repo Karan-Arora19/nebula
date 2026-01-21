@@ -99,8 +99,9 @@ export default function AdminDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Quick Stats */}
-            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+
+            {/* Quick Stats & Register User */}
+            <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm space-y-4">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Quick Stats</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
@@ -118,6 +119,12 @@ export default function AdminDashboard() {
                   <span className="font-bold text-lg text-green-600">+$4.2K</span>
                 </div>
               </div>
+              <button
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition mt-4"
+                onClick={() => router.push('/register')}
+              >
+                Register New User
+              </button>
             </div>
 
             {/* Recent Activity */}

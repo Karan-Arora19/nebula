@@ -59,35 +59,7 @@ export const apiClient = {
 // Auth API
 export const authApi = {
   async login(email, password) {
-    try {
-      return await apiClient.post('/users/login', { email, password });
-    } catch (error) {
-      // Fallback to mock login
-      console.log('Using mock login due to API unavailability');
-      if (email === 'admin@nebula.com' && password === 'admin123') {
-        return {
-          token: 'mock-token',
-          user: {
-            id: 1,
-            email,
-            username: 'admin',
-            role: 'ADMIN',
-          },
-        };
-      }
-      if (email === 'user@nebula.com' && password === 'user123') {
-        return {
-          token: 'mock-token',
-          user: {
-            id: 2,
-            email,
-            username: 'user',
-            role: 'USER',
-          },
-        };
-      }
-      throw new Error('Invalid credentials');
-    }
+    return await apiClient.post('/users/login', { email, password });
   },
 
   register: (user) =>

@@ -87,24 +87,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Newsletter Section */}
-        <div className="border-t border-gray-800 pt-8 mb-8">
-          <div className="max-w-2xl mx-auto text-center">
-            <h3 className="text-2xl font-bold mb-3">Stay Updated</h3>
-            <p className="text-gray-400 mb-6">Subscribe to our newsletter for exclusive offers and updates</p>
-            <div className="flex gap-2 max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-red-500 transition"
-              />
-              <button className="bg-red-600 hover:bg-red-700 px-6 py-3 rounded-lg font-semibold transition">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div>
-
         {/* Copyright */}
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
           <p>© 2024 Nebula. All rights reserved.</p>
