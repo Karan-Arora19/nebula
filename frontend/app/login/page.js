@@ -21,19 +21,31 @@ export default function LoginPage() {
 
     try {
       const result = await authApi.login(email, password);
-      
-      if (result && result.user) {
-        // Store token and user data
-        localStorage.setItem('authToken', result.token || 'mock-token');
-        localStorage.setItem('user', JSON.stringify(result.user));
-        
-        // Update auth context
-        login(result.user.username, password);
+      if (result && result.token && result.userId) {
+        // Store token and user info
+        localStorage.setItem('authToken', result.token);
+        localStorage.setItem('userId', result.userId);
+        localStorage.setItem('username', result.username);
+        localStorage.setItem('email', result.email);
 
-        // Redirect based on role
-        if (result.user.role === 'ADMIN') {
-          router.push('/admin-dashboard');
+        // Optionally update auth context if needed
+        login(result.username, password);
+
+        // Fetch user profile to get role
+        const token = result.token;
+        const userId = result.userId;
+        const profileRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api'}/users/${userId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (profileRes.ok) {
+          const profile = await profileRes.json();
+          if (profile.role === 'ADMIN') {
+            router.push('/admin-dashboard');
+          } else {
+            router.push('/user-dashboard');
+          }
         } else {
+          // Fallback: just go to user dashboard
           router.push('/user-dashboard');
         }
       } else {
@@ -121,32 +133,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-8 pt-8 border-t border-white/10">
-            <p className="text-xs font-semibold text-gray-300 mb-4 uppercase tracking-wider">Demo Credentials</p>
-            <div className="space-y-3">
-              <button
-                onClick={() => {
-                  setEmail('admin@nebula.com');
-                  setPassword('admin123');
-                }}
-                className="w-full text-left bg-red-500/15 hover:bg-red-500/25 border border-red-400/30 p-3 rounded-lg transition group cursor-pointer"
-              >
-                <p className="text-gray-200 font-medium group-hover:text-white">Admin Account</p>
-                <p className="text-xs text-gray-300/70 group-hover:text-gray-300">admin@nebula.com / admin123</p>
-              </button>
-              <button
-                onClick={() => {
-                  setEmail('user@nebula.com');
-                  setPassword('user123');
-                }}
-                className="w-full text-left bg-neutral-500/15 hover:bg-neutral-500/25 border border-neutral-400/30 p-3 rounded-lg transition group cursor-pointer"
-              >
-                <p className="text-gray-200 font-medium group-hover:text-white">User Account</p>
-                <p className="text-xs text-gray-300/70 group-hover:text-gray-300">user@nebula.com / user123</p>
-              </button>
-            </div>
-          </div>
+          {/* ...existing code... */}
         </div>
 
         {/* Footer */}
