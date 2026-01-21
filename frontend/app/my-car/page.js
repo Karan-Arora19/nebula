@@ -2,10 +2,19 @@
 
 import { Car, Fuel, Navigation, MapPin } from 'lucide-react'
 import { useMQTT } from '@/hooks/useMQTT'
+import { useUserVehicleInfo } from '@/hooks/useUserVehicleInfo'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function MyCarPage() {
-  const { value: fuelLevel } = useMQTT('mycar/fuel', 75)
-  const { value: carLocation } = useMQTT('mycar/location', null)
+  const { user } = useAuth()
+  // MQTT topic: nebula/user/{userId}/vehicle/info
+  const vehicleInfoMqtt = useMQTT(user?.id ? `nebula/user/${user.id}/vehicle/info` : null)
+  // REST fallback/API
+  const { vehicleInfo, loading } = useUserVehicleInfo()
+
+  // Prefer MQTT if available, else fallback to REST
+  const info = vehicleInfoMqtt || vehicleInfo
+  const carLocation = info?.carLocation || null
 
   return (
     <div className="min-h-screen bg-gray-900 text-white py-16 px-4">
@@ -20,16 +29,16 @@ export default function MyCarPage() {
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-gray-400">Model</span>
-                <span className="font-semibold">Nebula Velocity Sport</span>
+                <span className="text-gray-400">Maintenance Due</span>
+                <span className="font-semibold">{info?.maintenanceDueDate ? info.maintenanceDueDate : 'Loading...'}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-400">VIN</span>
-                <span className="font-mono text-sm">NEBULA2024VEL123456</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-400">Color</span>
-                <span className="font-semibold">Racing Red</span>
+                <span className="text-gray-400">Tyre Pressures</span>
+                <span className="font-mono text-sm">
+                  {info?.tyrePressures
+                    ? `FL: ${info.tyrePressures.frontLeft} | FR: ${info.tyrePressures.frontRight} | RL: ${info.tyrePressures.rearLeft} | RR: ${info.tyrePressures.rearRight}`
+                    : 'Loading...'}
+                </span>
               </div>
             </div>
           </div>
@@ -43,13 +52,13 @@ export default function MyCarPage() {
               <div className="relative pt-1">
                 <div className="flex mb-2 items-center justify-between">
                   <div className="text-3xl font-bold">
-                    {fuelLevel ? `${fuelLevel.toFixed(1)}%` : 'Loading...'}
+                    {info?.fuelLevel ? `${info.fuelLevel.toFixed(1)}%` : 'Loading...'}
                   </div>
                   <span className="text-sm text-gray-400">Live Data</span>
                 </div>
                 <div className="overflow-hidden h-4 mb-4 text-xs flex rounded-full bg-gray-700">
                   <div
-                    style={{ width: `${fuelLevel || 0}%` }}
+                    style={{ width: `${info?.fuelLevel || 0}%` }}
                     className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-red-600 to-red-400 transition-all duration-1000"
                   ></div>
                 </div>
