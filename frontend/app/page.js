@@ -1,11 +1,17 @@
 'use client'
 
-import { Car, Settings, Package, ChevronLeft, ChevronRight, ShoppingBag, Shirt, Watch, Coffee, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react'
+import { Car, Settings, Package, ChevronLeft, ChevronRight, ShoppingCart, Shirt, Watch, Coffee, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Youtube, Linkedin } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [cart, setCart] = useState([])
+  const router = useRouter()
 
   const cars = [
     { name: 'Nebula Velocity', type: 'Sport', price: '€89,900', power: '450 HP', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600' },
@@ -16,50 +22,75 @@ export default function Home() {
     { name: 'Nebula Prestige', type: 'Luxury Coupe', price: '€175,000', power: '550 HP', img: 'https://images.unsplash.com/photo-1541443131876-44b03de101c5?w=600' }
   ]
 
-  const featuredProducts = [
-    { 
-      name: 'Nebula Racing Cap', 
-      price: '€35', 
-      img: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400', 
-      badge: 'BESTSELLER',
-      description: 'Official Nebula racing cap with embroidered logo'
-    },
-    { 
-      name: 'Carbon Fiber Wallet', 
-      price: '€78', 
-      img: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=400', 
-      badge: 'NEW',
-      description: 'Lightweight carbon fiber construction'
-    },
-    { 
-      name: 'Limited Edition Watch', 
-      price: '€299', 
-      img: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', 
-      badge: 'LIMITED',
-      description: 'Only 500 pieces worldwide'
-    },
-    { 
-      name: 'Team Jacket', 
-      price: '€129', 
-      img: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400', 
-      badge: 'HOT',
-      description: 'Premium quality racing team jacket'
-    },
-    { 
-      name: 'Leather Keychain', 
-      price: '€25', 
-      img: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400', 
-      badge: null,
-      description: 'Handcrafted Italian leather'
-    },
-    { 
-      name: 'Performance T-Shirt', 
-      price: '€45', 
-      img: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400', 
-      badge: 'SALE',
-      description: 'Moisture-wicking athletic fabric'
+  // Fetch products from merchandise API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const merchandiseUrl = process.env.NEXT_PUBLIC_MERCHANDISE_URL || 'http://localhost:8084'
+        const response = await fetch(`${merchandiseUrl}/api/v1/merchandise/products`)
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch products: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        setProducts(data)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching products:', err)
+        setError(err.message)
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+
+    fetchProducts()
+  }, [])
+
+  // Load cart from localStorage
+  useEffect(() => {
+    const savedCart = localStorage.getItem('cart')
+    if (savedCart) {
+      setCart(JSON.parse(savedCart))
+    }
+
+    // Listen for cart updates from other tabs/components
+    const handleCartUpdate = () => {
+      const updatedCart = localStorage.getItem('cart')
+      if (updatedCart) {
+        setCart(JSON.parse(updatedCart))
+      }
+    }
+
+    window.addEventListener('cart-updated', handleCartUpdate)
+    return () => window.removeEventListener('cart-updated', handleCartUpdate)
+  }, [])
+
+  const addToCart = (product) => {
+    const cartItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      image: product.imageUrl
+    }
+    
+    const existingCart = localStorage.getItem('cart')
+    const updatedCart = existingCart ? JSON.parse(existingCart) : []
+    
+    const existingItem = updatedCart.find(item => item.productId === product.id)
+    if (existingItem) {
+      existingItem.quantity += 1
+    } else {
+      updatedCart.push(cartItem)
+    }
+    
+    localStorage.setItem('cart', JSON.stringify(updatedCart))
+    window.dispatchEvent(new Event('cart-updated'))
+    setCart(updatedCart)
+  }
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % cars.length)
@@ -219,43 +250,102 @@ export default function Home() {
             <p className="text-gray-400 text-xl">Express your passion with our exclusive collection</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {featuredProducts.map((product, idx) => (
-              <div
-                key={idx}
-                className="group bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-xl"
-              >
-                <div className="relative h-72 overflow-hidden">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
-                    style={{ backgroundImage: `url(${product.img})` }}
-                  ></div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
-                  
-                  {product.badge && (
-                    <div className={`absolute top-4 right-4 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-3 py-1 rounded-full`}>
-                      {product.badge}
+          {loading && (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-lg">Loading products...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center py-12">
+              <p className="text-red-500 text-lg">Failed to load products: {error}</p>
+            </div>
+          )}
+
+          {!loading && !error && products.length > 0 && (
+            <>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                {products.slice(0, 4).map((product) => (
+                  <div
+                    key={product.id}
+                    className="group bg-gray-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 shadow-xl"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <div 
+                        className="absolute inset-0 bg-cover bg-center transform group-hover:scale-110 transition-transform duration-500"
+                        style={{ backgroundImage: `url(${product.imageUrl || product.image_url || product.img || ''})` }}
+                      ></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent"></div>
+                      
+                      {product.badge && (
+                        <div className={`absolute top-2 right-2 ${getBadgeColor(product.badge)} text-white text-xs font-bold px-2 py-1 rounded-full`}>
+                          {product.badge}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                <div className="p-6">
-                  <h3 className="text-2xl font-bold mb-2">{product.name}</h3>
-                  <p className="text-gray-400 text-sm mb-4">{product.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-3xl font-bold text-red-500">{product.price}</span>
-                    <button className="bg-red-600 hover:bg-red-700 p-3 rounded-lg transition transform hover:scale-110">
-                      <ShoppingBag className="w-5 h-5" />
-                    </button>
+                    <div className="p-4">
+                      <h3 className="text-sm font-bold mb-1 line-clamp-2">{product.name}</h3>
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-red-500">€{product.price.toFixed(2)}</span>
+                        <button
+                          onClick={() => addToCart(product)}
+                          className="bg-red-600 hover:bg-red-700 p-2 rounded-lg transition transform hover:scale-110 active:scale-95"
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
 
+              <div className="text-center">
+                <Link
+                  href="/merchandise"
+                  className="inline-block bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-12 rounded-lg transition transform hover:scale-105"
+                >
+                  Show More
+                </Link>
+              </div>
+            </>
+          )}
+
+          {!loading && !error && products.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-lg">No products available</p>
+            </div>
+          )}
 
         </div>
       </div>
+
+      {/* Cart Summary (if items exist) */}
+      {cart.length > 0 && (
+        <div className="fixed bottom-8 right-32 bg-gray-800 rounded-xl shadow-2xl p-6 max-w-sm border-2 border-red-600 z-40">
+          <h3 className="text-xl font-bold mb-4">Cart Summary</h3>
+          <div className="space-y-2 mb-4 max-h-40 overflow-y-auto">
+            {cart.map((item, idx) => (
+              <div key={idx} className="flex justify-between text-sm">
+                <span className="text-gray-400">{item.name}</span>
+                <span className="font-semibold">€{Number(item.price).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-gray-700 pt-4 mb-4">
+            <div className="flex justify-between text-lg font-bold">
+              <span>Total:</span>
+              <span className="text-red-500">€{cart.reduce((sum, item) => sum + (Number(item.price) || 0), 0).toFixed(2)}</span>
+            </div>
+          </div>
+          <button
+            className="w-full bg-red-600 hover:bg-red-700 py-3 rounded-lg font-semibold transition"
+            onClick={() => router.push('/checkout')}
+          >
+            Checkout Now
+          </button>
+        </div>
+      )}
     </div>
   )
 }

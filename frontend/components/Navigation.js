@@ -19,7 +19,7 @@ export default function Navigation() {
     { href: '/car-configurator', label: 'Car Configurator', icon: Settings },
     { href: '/world-drive', label: 'World Drive', icon: MapPin },
     { href: '/merchandise', label: 'Merchandise', icon: ShoppingCart },
-    ...(user ? [{ href: '/my-car', label: 'My Car', icon: User }] : [])
+    ...(user && user.role === 'USER' ? [{ href: '/my-car', label: 'My Car', icon: User }] : [])
   ]
 
   const handleLogout = () => {

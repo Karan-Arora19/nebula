@@ -29,6 +29,26 @@ export function useAuth() {
     };
 
     checkAuth();
+
+    // Listen for storage changes (login/logout from other tabs or components)
+    const handleStorageChange = (e) => {
+      if (e.key === 'user' || e.key === 'authToken') {
+        checkAuth();
+      }
+    };
+
+    // Listen for custom auth events
+    const handleAuthChange = () => {
+      checkAuth();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('auth-change', handleAuthChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('auth-change', handleAuthChange);
+    };
   }, []);
 
   const login = (username, password) => {
@@ -42,6 +62,10 @@ export function useAuth() {
     localStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('authToken', 'mock-token-' + Date.now());
     setUser(userData);
+    
+    // Trigger auth change event for other components
+    window.dispatchEvent(new Event('auth-change'));
+    
     return userData;
   };
 
@@ -49,6 +73,9 @@ export function useAuth() {
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
     setUser(null);
+    
+    // Trigger auth change event for other components
+    window.dispatchEvent(new Event('auth-change'));
   };
 
   return {
