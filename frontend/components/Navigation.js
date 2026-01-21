@@ -52,7 +52,7 @@ export default function Navigation() {
                 </Link>
               )
             })}
-            {user && (
+            {user ? (
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800 transition"
@@ -60,6 +60,14 @@ export default function Navigation() {
                 <LogOut className="w-4 h-4" />
                 <span className="hidden md:inline">Logout</span>
               </button>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 transition text-white font-semibold"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden md:inline">Login</span>
+              </Link>
             )}
           </div>
         </div>
