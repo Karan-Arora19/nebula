@@ -14,7 +14,6 @@ export default function MyCarPage() {
 
   // Prefer MQTT if available, else fallback to REST
   const info = vehicleInfoMqtt || vehicleInfo
-  const carLocation = info?.carLocation || null
 
   return (
     <div className="min-h-screen bg-gray-900 text-white py-16 px-4">
